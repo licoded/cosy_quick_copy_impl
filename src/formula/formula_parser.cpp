@@ -1,4 +1,4 @@
-#include "formula/formula_parser.h"
+#include "formula/formula_parser.hpp"
 #include "ltlparser/trans.h"
 #include <stdexcept>
 #include <cassert>

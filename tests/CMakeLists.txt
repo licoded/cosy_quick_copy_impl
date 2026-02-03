@@ -1,6 +1,7 @@
 function(add_formula_test test_name source_file)
     add_executable(${test_name} ${source_file})
     target_link_libraries(${test_name} PRIVATE formula Catch2::Catch2WithMain)
+    target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
     # Output to build/tests/
     set_target_properties(${test_name} PROPERTIES

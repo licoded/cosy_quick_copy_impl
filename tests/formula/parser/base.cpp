@@ -1,90 +1,56 @@
 #include "formula/formula_parser.hpp"
-
 #include <catch2/catch_test_macros.hpp>
 
-using namespace formula;
+using namespace Cosy;
 
 TEST_CASE("FormulaParser: Parse literals", "[parser]") {
-    FormulaParser parser;
+    Formula f1("true");
+    REQUIRE(f1.toString() == "true");
 
-    auto f = parser.parse("true");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "true");
-    REQUIRE(parser.error().empty());
+    Formula f2("false");
+    REQUIRE(f2.toString() == "false");
 
-    f = parser.parse("false");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "false");
-
-    f = parser.parse("a");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "a");
-    auto vars = Formula::collect_variables(f);
-    REQUIRE(vars == std::unordered_set<std::string>{"a"});
+    Formula f3("a");
+    REQUIRE(f3.toString() == "a");
 }
 
 TEST_CASE("FormulaParser: Parse unary operators", "[parser]") {
-    FormulaParser parser;
-
-    auto f = parser.parse("!a");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "!(a)");
+    Formula f1("!a");
+    REQUIRE(f1.toString() == "!a");
  
-    f = parser.parse("X a");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "X(a)");
+    Formula f2("X a");
+    REQUIRE(f2.toString() == "(X a)");
  
-    f = parser.parse("X (a & b)");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "X((a & b))");
+    Formula f3("X (a & b)");
+    REQUIRE(f3.toString() == "(X (a & b))");
  
-    f = parser.parse("! X a");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "!(X(a))");
+    Formula f4("! X a");
+    REQUIRE(f4.toString() == "!(X a)");
 }
 
 TEST_CASE("FormulaParser: Parse binary operators", "[parser]") {
-    FormulaParser parser;
+    Formula f1("a & b");
+    REQUIRE(f1.toString() == "(a & b)");
 
-    auto f = parser.parse("a & b");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "(a & b)");
-
-    f = parser.parse("a | b");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "(a | b)");
+    Formula f2("a | b");
+    REQUIRE(f2.toString() == "(a | b)");
 }
 
 TEST_CASE("FormulaParser: Operator precedence", "[parser]") {
-    FormulaParser parser;
+    Formula f1("a & b | c");
+    REQUIRE(f1.toString() == "((a & b) | c)");
 
-    auto f = parser.parse("a & b | c");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "((a & b) | c)");
-
-    f = parser.parse("a | b & c");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "(a | (b & c))");
+    Formula f2("a | b & c");
+    REQUIRE(f2.toString() == "(a | (b & c))");
 }
 
 TEST_CASE("FormulaParser: Parentheses", "[parser]") {
-    FormulaParser parser;
-
-    auto f = parser.parse("(a | b) & c");
-    REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "((a | b) & c)");
+    Formula f1("(a | b) & c");
+    REQUIRE(f1.toString() == "((a | b) & c)");
 }
 
 TEST_CASE("FormulaParser: Error handling", "[parser]") {
-    FormulaParser parser;
-
-    auto f = parser.parse("");
-    REQUIRE(f == nullptr);
-    REQUIRE(!parser.error().empty());
-
-    f = parser.parse("a &");
-    REQUIRE(f == nullptr);
-
-    f = parser.parse("(a");
-    REQUIRE(f == nullptr);
+    REQUIRE_THROWS(Formula(""));
+    REQUIRE_THROWS(Formula("a &"));
+    REQUIRE_THROWS(Formula("(a"));
 }

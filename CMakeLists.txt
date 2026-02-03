@@ -22,10 +22,10 @@ add_library(formula STATIC
     deps/internal/ltlparser/ltlparser.c
     deps/internal/ltlparser/trans.c
 )
-target_include_directories(formula PUBLIC 
+target_include_directories(formula PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/deps/external
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/external
 )
 target_compile_features(formula PUBLIC cxx_std_20)
 

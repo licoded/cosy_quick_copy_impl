@@ -2,10 +2,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using namespace formula;
+using namespace Cosy;
 
 TEST_CASE("FormulaParser: Error handling", "[parser][errors]") {
-    FormulaParser parser;
+    Formula parser;
 
     // Incomplete expression: a &
     auto f = parser.parse("a &");

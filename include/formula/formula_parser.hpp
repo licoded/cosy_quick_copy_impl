@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <vector>
+#include <unordered_map>
 
 namespace Cosy {
 
@@ -30,7 +32,7 @@ public:
 
     std::string toString() const;
 
-private:
+public:
     void build(const ltl_formula* formula, bool is_not = false, bool is_ltlf = false);
     void build_atom(const char* name, bool is_not = false);
 
@@ -38,8 +40,20 @@ private:
     Formula* left_ = nullptr;
     Formula* right_ = nullptr;
 
+    std::string error_message_;
+
     static std::vector<std::string> names_;
     static std::unordered_map<std::string, int> ids_;
+
+    Formula* parse(const char* input, bool is_ltlf = false) {
+        try {
+            return new Formula(input, is_ltlf);
+        } catch (const std::exception& e) {
+            error_message_ = e.what();
+            return nullptr;
+        }
+    }
+    const std::string& error() const { return error_message_; }
 };
 
 } // namespace Cosy

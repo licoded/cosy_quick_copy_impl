@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.22)
 
 project(CosyQuickCopyImpl VERSION 0.1 LANGUAGES CXX)
 
+include_directories(deps/external deps/internal include)
+
+
 # ------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------
@@ -19,7 +22,7 @@ add_library(formula STATIC
     src/formula/formula_parser.cpp
 )
 target_include_directories(formula PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
 target_compile_features(formula PUBLIC cxx_std_20)

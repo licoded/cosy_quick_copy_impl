@@ -44,6 +44,3 @@ coverage/
 
 # Logs
 *.log
-
-# Dependencies (if any)
-deps/

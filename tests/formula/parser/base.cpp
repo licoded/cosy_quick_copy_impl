@@ -28,19 +28,19 @@ TEST_CASE("FormulaParser: Parse unary operators", "[parser]") {
 
     auto f = parser.parse("!a");
     REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "!a");
-
+    REQUIRE(f->to_string() == "!(a)");
+ 
     f = parser.parse("X a");
     REQUIRE(f != nullptr);
     REQUIRE(f->to_string() == "X(a)");
-
+ 
     f = parser.parse("X (a & b)");
     REQUIRE(f != nullptr);
     REQUIRE(f->to_string() == "X((a & b))");
-
+ 
     f = parser.parse("! X a");
     REQUIRE(f != nullptr);
-    REQUIRE(f->to_string() == "!X(a)");
+    REQUIRE(f->to_string() == "!(X(a))");
 }
 
 TEST_CASE("FormulaParser: Parse binary operators", "[parser]") {

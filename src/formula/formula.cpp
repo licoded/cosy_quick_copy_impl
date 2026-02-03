@@ -50,7 +50,7 @@ std::string Formula::to_string() const {
         case OpType::True: return "true";
         case OpType::False: return "false";
         case OpType::Literal: return literal_;
-        case OpType::Not: return "!" + left_->to_string();
+        case OpType::Not: return "!(" + left_->to_string() + ")";
         case OpType::And: return "(" + left_->to_string() + " & " + right_->to_string() + ")";
         case OpType::Or: return "(" + left_->to_string() + " | " + right_->to_string() + ")";
         case OpType::Next: return "X(" + left_->to_string() + ")";

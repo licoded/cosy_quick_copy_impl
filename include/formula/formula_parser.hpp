@@ -47,6 +47,7 @@ class FormulaParser
 
     Formula::Ptr parse_formula();
     Formula::Ptr parse_or();
+    Formula::Ptr parse_until();
     Formula::Ptr parse_and();
     Formula::Ptr parse_unary();
     Formula::Ptr parse_postfix();

@@ -8,6 +8,9 @@ function(add_formula_test test_name source_file)
     )
 endfunction()
 
-add_formula_test(formula_parser_test formula/formula_parser_test.cpp)
+add_formula_test(formula_parser_base_test formula/parser/base.cpp)
+add_formula_test(formula_parser_unary_test formula/parser/unary.cpp)
+add_formula_test(formula_parser_precedence_test formula/parser/precedence.cpp)
+add_formula_test(formula_parser_errors_test formula/parser/errors.cpp)
 
 add_test(NAME formula_parser_test COMMAND formula_parser_test)

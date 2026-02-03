@@ -9,9 +9,9 @@ FormulaParser::FormulaParser(std::unordered_map<std::string, int> variables)
     : variables_(std::move(variables)) {}
 
 Formula::Ptr FormulaParser::parse(const std::string &input) {
+    error_.clear();
     tokenize(input);
     pos_ = 0;
-    error_.clear();
     auto result = parse_formula();
     if (!error_.empty() || peek().type != Token::Type::End) {
         if (error_.empty()) set_error("Unexpected tokens");
@@ -96,11 +96,22 @@ Formula::Ptr FormulaParser::parse_formula() {
 }
 
 Formula::Ptr FormulaParser::parse_or() {
-    auto left = parse_and();
+    auto left = parse_until();
     while (peek().type == Token::Type::Or) {
         consume();
-        auto right = parse_and();
+        auto right = parse_until();
         left = Formula::make_binary(Formula::OpType::Or, left, right);
+    }
+    return left;
+}
+
+Formula::Ptr FormulaParser::parse_until() {
+    auto left = parse_and();
+    while (peek().type == Token::Type::Until || peek().type == Token::Type::Release) {
+        auto op = peek().type == Token::Type::Until ? Formula::OpType::Until : Formula::OpType::Release;
+        consume();
+        auto right = parse_and();
+        left = Formula::make_binary(op, left, right);
     }
     return left;
 }
@@ -109,7 +120,7 @@ Formula::Ptr FormulaParser::parse_and() {
     auto left = parse_unary();
     while (peek().type == Token::Type::And) {
         consume();
-        auto right = parse_unary();
+        auto right = parse_until();
         left = Formula::make_binary(Formula::OpType::And, left, right);
     }
     return left;

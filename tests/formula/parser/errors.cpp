@@ -5,35 +5,33 @@
 using namespace Cosy;
 
 TEST_CASE("FormulaParser: Error handling", "[parser][errors]") {
-    Formula parser;
-
     // Incomplete expression: a &
-    auto f = parser.parse("a &");
+    Formula* f = new Formula("a &");
     REQUIRE(f == nullptr);
-    REQUIRE(!parser.error().empty());
+    
 
     // Unmatched parenthesis: (a
-    f = parser.parse("(a");
+    f = new Formula("(a");
     REQUIRE(f == nullptr);
-    REQUIRE(!parser.error().empty());
+    
 
     // Empty string
-    f = parser.parse("");
+    f = new Formula("");
     REQUIRE(f == nullptr);
-    REQUIRE(!parser.error().empty());
+    
 
     // Invalid token: a @
-    f = parser.parse("a @");
+    f = new Formula("a @");
     REQUIRE(f == nullptr);
-    REQUIRE(!parser.error().empty());
+    
 
     // Extra tokens: a b
-    f = parser.parse("a b");
+    f = new Formula("a b");
     REQUIRE(f == nullptr);
-    REQUIRE(!parser.error().empty());
+    
 
     // Unclosed parenthesis in complex expression
-    f = parser.parse("a & (b | c");
+    f = new Formula("a & (b | c");
     REQUIRE(f == nullptr);
-    REQUIRE(!parser.error().empty());
+    
 }

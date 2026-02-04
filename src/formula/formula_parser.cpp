@@ -1,6 +1,7 @@
 #include "formula/formula_parser.hpp"
 #include "ltlparser/trans.h"
 #include <stdexcept>
+#include <iostream>
 #include <cassert>
 #include <string>
 #include <vector>
@@ -27,8 +28,14 @@ Formula::Formula(const char* input, bool is_ltlf) {
         names_.push_back("R");
         names_.push_back("Undefined");
     }
+    std::cout << "Before getAST: " << input << std::endl;
+    if (input == nullptr || std::strlen(input) == 0) {
+        throw std::invalid_argument("Input formula cannot be empty");
+    }
     ltl_formula* formula = getAST(input);
-    build(formula, false, is_ltlf);
+    std::cout << "After getAST: " << input << std::endl;
+    std::cout << "Parsing: " << input << std::endl;
+build(formula, false, is_ltlf);
     destroy_formula(formula);
 }
 
@@ -65,7 +72,7 @@ void Formula::build(const ltl_formula* formula, bool is_not, bool is_ltlf) {
             right_ = new Formula(formula->_right, is_not, is_ltlf);
             break;
         case eWNEXT:
-            assert(is_ltlf);
+            if (!is_ltlf) throw std::runtime_error("is_ltlf must be true for weak next operator (WNEXT)!");
             op_ = is_not ? Operator::Next : Operator::WNext;
             right_ = new Formula(formula->_right, is_not, is_ltlf);
             break;

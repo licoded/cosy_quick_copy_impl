@@ -32,7 +32,7 @@ public:
 
     std::string toString() const;
 
-public:
+private:
     void build(const ltl_formula* formula, bool is_not = false, bool is_ltlf = false);
     void build_atom(const char* name, bool is_not = false);
 

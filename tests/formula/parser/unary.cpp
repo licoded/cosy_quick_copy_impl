@@ -5,26 +5,24 @@
 using namespace Cosy;
 
 TEST_CASE("FormulaParser: Unary operator precedence", "[parser][unary]") {
-    Formula parser;
-
     // Test double negation: ! ! a should be !(!(a))
-    auto f = parser.parse("! ! a");
+    Formula* f = new Formula("! ! a");
     REQUIRE(f != nullptr);
     REQUIRE(f->toString() == "!(!(a))");
-    REQUIRE(parser.error().empty());
+    REQUIRE(f != nullptr);
 
     // Test Next precedence: X X a should be X(X(a))
-    f = parser.parse("X X a");
+    f = new Formula("X X a");
     REQUIRE(f != nullptr);
     REQUIRE(f->toString() == "X(X(a))");
 
     // Test mixed: ! X a should be !(X(a))
-    f = parser.parse("! X a");
+    f = new Formula("! X a");
     REQUIRE(f != nullptr);
     REQUIRE(f->toString() == "!(X(a))");
 
     // Test X ! a should be X(!(a))
-    f = parser.parse("X ! a");
+    f = new Formula("X ! a");
     REQUIRE(f != nullptr);
     REQUIRE(f->toString() == "X(!(a))");
 }

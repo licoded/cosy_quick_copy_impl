@@ -909,7 +909,7 @@ YY_RULE_SETUP
 case 19:
 YY_RULE_SETUP
 #line 62 "ltllexer.l"
-{ fprintf(stderr, "\033[31mERROR\033[0m: Unrecognized symbol: \033[34m%s\033[0m\n", yytext); exit(1); }
+{ fprintf(stderr, "\033[31mERROR\033[0m: Unrecognized symbol: \033[34m%s\033[0m\n", yytext); yyterminate(); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP

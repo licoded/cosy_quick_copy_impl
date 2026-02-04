@@ -32,9 +32,9 @@ public:
     std::string toString() const;
 
 private:
-    Formula(const ltl_formula* formula, bool is_not = false);
-    void build(const ltl_formula* formula, bool is_not = false);
-    void build_atom(const char* name, bool is_not = false);
+    Formula(const ltl_formula* formula);
+    void build(const ltl_formula* formula);
+    void build_atom(const char* name);
 
     Operator op_ = Operator::Undefined;
     Formula* left_ = nullptr;

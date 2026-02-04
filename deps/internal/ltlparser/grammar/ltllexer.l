@@ -59,7 +59,7 @@ WS			[ \r\n\t]*
 {FALSE}			{ return TOKEN_FALSE;		}
 {ID}			{ yylval->var_name = yytext; return TOKEN_VARIABLE; }
 
-.				{ fprintf(stderr, "\033[31mERROR\033[0m: Unrecognized symbol: \033[34m%s\033[0m\n", yytext); exit(1); }
+.				{ fprintf(stderr, "\033[31mERROR\033[0m: Unrecognized symbol: \033[34m%s\033[0m\n", yytext); yyterminate(); }
 %%
 /*
 int yyerror(const char *msg) {

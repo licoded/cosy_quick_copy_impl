@@ -75,8 +75,8 @@
 
 int yyerror(ltl_formula **formula, yyscan_t scanner, const char *msg) {
 	fprintf (stderr, "\033[31mERROR\033[0m: %s\n", msg);
-	exit(1);
-	return 0;
+	// Don't exit, let caller handle the error
+	return -1;
 }
 
 

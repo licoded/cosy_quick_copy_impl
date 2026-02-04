@@ -1,36 +1,41 @@
 #include "formula/operator.hpp"
+#include <stdexcept>
 
 namespace Cosy {
 
-void initialize_operator_names(std::vector<std::string>& names) {
-    if (names.empty()) {
-        names.push_back("true");
-        names.push_back("false");
-        names.push_back("Literal");
-        names.push_back("!");
-        names.push_back("|");
-        names.push_back("&");
-        names.push_back("X[!]");
-        names.push_back("X");
-        names.push_back("U");
-        names.push_back("R");
-        names.push_back("Undefined");
+void SymbolTable::initialize_operators() {
+    if (names_.empty()) {
+        names_.push_back("true");
+        names_.push_back("false");
+        names_.push_back("Literal");
+        names_.push_back("!");
+        names_.push_back("|");
+        names_.push_back("&");
+        names_.push_back("X[!]");
+        names_.push_back("X");
+        names_.push_back("U");
+        names_.push_back("R");
+        names_.push_back("Undefined");
     }
 }
 
-unsigned int register_variable_name(const std::string& var_name,
-                                     std::vector<std::string>& names,
-                                     std::unordered_map<std::string, int>& ids) {
-    auto it = ids.find(var_name);
-    unsigned int id;
-    if (it == ids.end()) {
-        id = names.size();
-        ids[var_name] = id;
-        names.push_back(var_name);
+unsigned int SymbolTable::get_or_create_variable_id(const std::string& var_name) {
+    auto it = ids_.find(var_name);
+    if (it == ids_.end()) {
+        unsigned int id = names_.size();
+        ids_[var_name] = id;
+        names_.push_back(var_name);
+        return id;
     } else {
-        id = it->second;
+        return it->second;
     }
-    return id;
+}
+
+const std::string& SymbolTable::get_name(unsigned int id) const {
+    if (id >= names_.size()) {
+        throw std::out_of_range("Invalid symbol ID");
+    }
+    return names_[id];
 }
 
 } // namespace Cosy

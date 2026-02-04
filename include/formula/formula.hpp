@@ -2,8 +2,6 @@
 
 #include "operator.hpp"
 #include <string>
-#include <vector>
-#include <unordered_map>
 
 namespace Cosy {
 
@@ -30,8 +28,7 @@ private:
     Formula* right_ = nullptr;
     unsigned int var_id_ = 0;
 
-    static std::vector<std::string> names_;
-    static std::unordered_map<std::string, int> ids_;
+    static SymbolTable symbol_table_;
 };
 
 } // namespace Cosy

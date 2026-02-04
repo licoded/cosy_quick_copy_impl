@@ -3,13 +3,10 @@
 #include <stdexcept>
 #include <cassert>
 #include <string>
-#include <vector>
-#include <unordered_map>
 
 namespace Cosy {
 
-std::vector<std::string> Formula::names_;
-std::unordered_map<std::string, int> Formula::ids_;
+SymbolTable Formula::symbol_table_;
 
 namespace {
     // Forward declaration
@@ -24,7 +21,7 @@ Formula::Formula(const std::string& str) {
 }
 
 Formula* Formula::parse(const std::string& input) {
-    initialize_operator_names(names_);
+    symbol_table_.initialize_operators();
     if (input.empty()) {
         throw std::invalid_argument("Input formula cannot be empty");
     }
@@ -55,7 +52,7 @@ Formula *Formula::make_false() {
 }
 
 Formula* Formula::make_literal(const std::string& var_name) {
-    unsigned int id = register_variable_name(var_name, names_, ids_);
+    unsigned int id = symbol_table_.get_or_create_variable_id(var_name);
     return new Formula(Operator::Literal, nullptr, nullptr, id);
 }
 
@@ -149,9 +146,9 @@ std::string Formula::toString() const {
     // Atomic value (literal)
     if (left_ == nullptr && right_ == nullptr) {
         if (op_ == Operator::Literal) {
-            return names_[var_id_];
+            return symbol_table_.get_name(var_id_);
         }
-        return names_[static_cast<int>(op_)];
+        return symbol_table_.get_name(static_cast<int>(op_));
     }
 
     // Error: invalid state
@@ -159,7 +156,7 @@ std::string Formula::toString() const {
         throw std::runtime_error("Invalid formula: binary operator without right operand");
     }
 
-    const std::string& op_str = names_[static_cast<int>(op_)];
+    const std::string& op_str = symbol_table_.get_name(static_cast<int>(op_));
 
     // Unary prefix operators: Not, Next, WNext
     if (!is_binary()) {

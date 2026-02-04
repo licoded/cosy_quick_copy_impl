@@ -30,6 +30,7 @@ public:
     ~Formula();
 
     std::string toString() const;
+    bool is_binary() const;
 
 private:
     Formula(const ltl_formula* formula);
@@ -39,8 +40,6 @@ private:
     Operator op_ = Operator::Undefined;
     Formula* left_ = nullptr;
     Formula* right_ = nullptr;
-
-    bool is_binary() const;
 
     static std::vector<std::string> names_;
     static std::unordered_map<std::string, int> ids_;

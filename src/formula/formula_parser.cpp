@@ -147,8 +147,30 @@ void Formula::build_atom(const char* name) {
     op_ = static_cast<Operator>(id);
 }
 
+namespace {
+
+// Helper: wrap string in parentheses if not already wrapped
+std::string maybe_parenthesize(const std::string& s) {
+    return (s.empty() || s[0] != '(') ? "(" + s + ")" : s;
+}
+
+// Helper for binary operators: wrap if either operand contains an operator
+std::string maybe_parenthesize_binary(const std::string& left, const std::string& op, const std::string& right) {
+    // If left or right contains a space (meaning they are binary expressions), wrap in parens
+    bool left_needs_parens = (left.find(' ') != std::string::npos);
+    bool right_needs_parens = (right.find(' ') != std::string::npos);
+
+    std::string left_str = left_needs_parens ? "(" + left + ")" : left;
+    std::string right_str = right_needs_parens ? "(" + right + ")" : right;
+
+    return left_str + " " + op + " " + right_str;
+}
+
+} // anonymous namespace
+
 
 std::string Formula::toString() const {
+    // Atomic value (literal)
     if (left_ == nullptr && right_ == nullptr) {
         if (static_cast<int>(op_) >= names_.size()) {
             return "unknown_literal";
@@ -156,37 +178,28 @@ std::string Formula::toString() const {
         return names_[static_cast<int>(op_)];
     }
 
-    // Unary prefix operators: Not, Next, WNext
+    // Error: invalid state
+    if (left_ != nullptr && right_ == nullptr) {
+        throw std::runtime_error("Invalid formula: binary operator without right operand");
+    }
+
+    // Unary prefix operators: Not
     if (op_ == Operator::Not) {
-        std::string right_str = right_->toString();
-        // Add parentheses if right doesn't already start with '('
-        if (right_str[0] != '(') {
-            right_str = "(" + right_str + ")";
-        }
-        return "!" + right_str;
+        return "!" + maybe_parenthesize(right_->toString());
     }
 
+    // Unary prefix operators: Next, WNext
     if (left_ == nullptr) {
-        // Next, WNext: format as "X(...)" without space after X
-        std::string right_str = right_->toString();
-        // Add parentheses if right doesn't already start with '('
-        if (right_str[0] != '(') {
-            right_str = "(" + right_str + ")";
-        }
-        return names_[static_cast<int>(op_)] + right_str;
-    }
-
-    if (right_ == nullptr) {
-        return "(" + left_->toString() + " " + names_[static_cast<int>(op_)] + ")";
+        return names_[static_cast<int>(op_)] + maybe_parenthesize(right_->toString());
     }
 
     // Binary operators
     if (left_->op_ == Operator::True && op_ == Operator::Until)
-        return "(F " + right_->toString() + ")";
+        return "F" + maybe_parenthesize(right_->toString());
     if (left_->op_ == Operator::False && op_ == Operator::Release)
-        return "(G " + right_->toString() + ")";
+        return "G" + maybe_parenthesize(right_->toString());
 
-    return "(" + left_->toString() + " " + names_[static_cast<int>(op_)] + " " + right_->toString() + ")";
+    return maybe_parenthesize_binary(left_->toString(), names_[static_cast<int>(op_)], right_->toString());
 }
 
 } // namespace Cosy

@@ -30,23 +30,23 @@ TEST_CASE("FormulaParser: Parse unary operators", "[parser]") {
 
 TEST_CASE("FormulaParser: Parse binary operators", "[parser]") {
     Formula f1("a & b");
-    REQUIRE(f1.toString() == "(a & b)");
+    REQUIRE(f1.toString() == "a & b");
 
     Formula f2("a | b");
-    REQUIRE(f2.toString() == "(a | b)");
+    REQUIRE(f2.toString() == "a | b");
 }
 
 TEST_CASE("FormulaParser: Operator precedence", "[parser]") {
     Formula f1("a & b | c");
-    REQUIRE(f1.toString() == "((a & b) | c)");
+    REQUIRE(f1.toString() == "(a & b) | c");
 
     Formula f2("a | b & c");
-    REQUIRE(f2.toString() == "(a | (b & c))");
+    REQUIRE(f2.toString() == "a | (b & c)");
 }
 
 TEST_CASE("FormulaParser: Parentheses", "[parser]") {
     Formula f1("(a | b) & c");
-    REQUIRE(f1.toString() == "((a | b) & c)");
+    REQUIRE(f1.toString() == "(a | b) & c");
 }
 
 TEST_CASE("FormulaParser: Error handling", "[parser]") {

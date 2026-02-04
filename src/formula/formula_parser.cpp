@@ -147,23 +147,15 @@ void Formula::build_atom(const char* name) {
     op_ = static_cast<Operator>(id);
 }
 
+bool Formula::is_binary() const {
+    return left_ != nullptr;
+}
+
 namespace {
 
 // Helper: wrap string in parentheses if not already wrapped
 std::string maybe_parenthesize(const std::string& s) {
     return (s.empty() || s[0] != '(') ? "(" + s + ")" : s;
-}
-
-// Helper for binary operators: wrap if either operand contains an operator
-std::string maybe_parenthesize_binary(const std::string& left, const std::string& op, const std::string& right) {
-    // If left or right contains a space (meaning they are binary expressions), wrap in parens
-    bool left_needs_parens = (left.find(' ') != std::string::npos);
-    bool right_needs_parens = (right.find(' ') != std::string::npos);
-
-    std::string left_str = left_needs_parens ? "(" + left + ")" : left;
-    std::string right_str = right_needs_parens ? "(" + right + ")" : right;
-
-    return left_str + " " + op + " " + right_str;
 }
 
 } // anonymous namespace
@@ -199,7 +191,17 @@ std::string Formula::toString() const {
     if (left_->op_ == Operator::False && op_ == Operator::Release)
         return "G" + maybe_parenthesize(right_->toString());
 
-    return maybe_parenthesize_binary(left_->toString(), names_[static_cast<int>(op_)], right_->toString());
+    // combine left and right with operator
+    std::string left_str = left_->toString();
+    if (left_->is_binary()) {
+        left_str = maybe_parenthesize(left_str);
+    }
+    std::string right_str = right_->toString();
+    if (right_->is_binary()) {
+        right_str = maybe_parenthesize(right_str);
+    }
+
+    return left_str + " " + names_[static_cast<int>(op_)] + " " + right_str;
 }
 
 } // namespace Cosy

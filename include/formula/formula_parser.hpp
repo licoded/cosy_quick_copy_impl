@@ -40,6 +40,8 @@ private:
     Formula* left_ = nullptr;
     Formula* right_ = nullptr;
 
+    bool is_binary() const;
+
     static std::vector<std::string> names_;
     static std::unordered_map<std::string, int> ids_;
 };

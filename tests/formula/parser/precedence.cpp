@@ -16,10 +16,10 @@ TEST_CASE("FormulaParser: Binary operator precedence", "[parser][precedence]") {
     REQUIRE(f != nullptr);
     REQUIRE(f->toString() == "(a | (b & c))");
 
-    // Test associativity: a & b & c should be a & (b & c)
+    // Test associativity: a & b & c should be (a & b) & c (left-associative)
     f = new Formula("a & b & c");
     REQUIRE(f != nullptr);
-    REQUIRE(f->toString() == "(a & (b & c))");
+    REQUIRE(f->toString() == "((a & b) & c)");
 
     // a | b | c should be (a | b) | c
     f = new Formula("a | b | c");

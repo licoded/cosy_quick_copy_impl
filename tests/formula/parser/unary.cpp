@@ -9,7 +9,6 @@ TEST_CASE("FormulaParser: Unary operator precedence", "[parser][unary]") {
     Formula* f = new Formula("! ! a");
     REQUIRE(f != nullptr);
     REQUIRE(f->toString() == "!(!(a))");
-    REQUIRE(f != nullptr);
 
     // Test Next precedence: X X a should be X(X(a))
     f = new Formula("X X a");

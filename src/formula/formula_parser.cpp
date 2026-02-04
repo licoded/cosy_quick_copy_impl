@@ -155,16 +155,32 @@ std::string Formula::toString() const {
         }
         return names_[static_cast<int>(op_)];
     }
+
+    // Unary prefix operators: Not, Next, WNext
     if (op_ == Operator::Not) {
-        return "!" + right_->toString();
+        std::string right_str = right_->toString();
+        // Add parentheses if right doesn't already start with '('
+        if (right_str[0] != '(') {
+            right_str = "(" + right_str + ")";
+        }
+        return "!" + right_str;
     }
+
     if (left_ == nullptr) {
-        return "(" + names_[static_cast<int>(op_)] + " " + right_->toString() + ")";
+        // Next, WNext: format as "X(...)" without space after X
+        std::string right_str = right_->toString();
+        // Add parentheses if right doesn't already start with '('
+        if (right_str[0] != '(') {
+            right_str = "(" + right_str + ")";
+        }
+        return names_[static_cast<int>(op_)] + right_str;
     }
+
     if (right_ == nullptr) {
         return "(" + left_->toString() + " " + names_[static_cast<int>(op_)] + ")";
     }
 
+    // Binary operators
     if (left_->op_ == Operator::True && op_ == Operator::Until)
         return "(F " + right_->toString() + ")";
     if (left_->op_ == Operator::False && op_ == Operator::Release)

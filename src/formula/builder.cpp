@@ -42,14 +42,14 @@ Formula* FormulaBuilder::make_literal(const std::string& var_name) {
 }
 
 Formula* FormulaBuilder::make_unary(Operator op, Formula* sub_formula) {
-    if (op != Operator::Not && op != Operator::Next && op != Operator::WNext) {
+    if (!is_unary_operator(op)) {
         throw std::invalid_argument("Invalid unary operator");
     }
     return new Formula(op, nullptr, sub_formula);
 }
 
 Formula* FormulaBuilder::make_binary(Operator op, Formula* left, Formula* right) {
-    if (op != Operator::And && op != Operator::Or && op != Operator::Until && op != Operator::Release) {
+    if (!is_binary_operator(op)) {
         throw std::invalid_argument("Invalid binary operator");
     }
     return new Formula(op, left, right);

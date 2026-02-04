@@ -5,6 +5,33 @@ namespace Cosy {
 
 namespace {
     SymbolTable global_symbol_table;
+
+    // Operator information table - order must match Operator enum
+    constexpr OperatorInfo operator_info_table[] = {
+        {"true",      OperatorArity::Nullary},  // True
+        {"false",     OperatorArity::Nullary},  // False
+        {"Literal",   OperatorArity::Nullary},  // Literal
+        {"!",         OperatorArity::Unary},    // Not
+        {"|",         OperatorArity::Binary},   // Or
+        {"&",         OperatorArity::Binary},   // And
+        {"X[!]",      OperatorArity::Unary},    // Next (strong next)
+        {"X",         OperatorArity::Unary},    // WNext (weak next)
+        {"U",         OperatorArity::Binary},   // Until
+        {"R",         OperatorArity::Binary},   // Release
+        {"Undefined", OperatorArity::Nullary}   // Undefined
+    };
+}
+
+const OperatorInfo& get_operator_info(Operator op) {
+    return operator_info_table[static_cast<int>(op)];
+}
+
+bool is_unary_operator(Operator op) {
+    return get_operator_info(op).arity == OperatorArity::Unary;
+}
+
+bool is_binary_operator(Operator op) {
+    return get_operator_info(op).arity == OperatorArity::Binary;
 }
 
 SymbolTable& get_global_symbol_table() {
@@ -13,17 +40,11 @@ SymbolTable& get_global_symbol_table() {
 
 void SymbolTable::initialize_operators() {
     if (names_.empty()) {
-        names_.push_back("true");
-        names_.push_back("false");
-        names_.push_back("Literal");
-        names_.push_back("!");
-        names_.push_back("|");
-        names_.push_back("&");
-        names_.push_back("X[!]");
-        names_.push_back("X");
-        names_.push_back("U");
-        names_.push_back("R");
-        names_.push_back("Undefined");
+        // Automatically populate from operator info table
+        for (int i = 0; i <= static_cast<int>(Operator::Undefined); ++i) {
+            const OperatorInfo& info = get_operator_info(static_cast<Operator>(i));
+            names_.push_back(info.name);
+        }
     }
 }
 

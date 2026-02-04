@@ -127,7 +127,7 @@ Formula* build_formula(const ltl_formula* ast) {
         case eLITERAL:
             return Formula::make_literal(ast->_var);
         case eNOT:
-            return Formula::make_unary(Formula::Operator::Not, left);
+            return Formula::make_unary(Formula::Operator::Not, right);
         case eNEXT:
             return Formula::make_unary(Formula::Operator::Next, right);
         case eWNEXT:
@@ -168,8 +168,8 @@ Formula* build_formula(const ltl_formula* ast) {
 std::string Formula::toString() const {
     // Atomic value (literal)
     if (left_ == nullptr && right_ == nullptr) {
-        if (static_cast<int>(op_) >= names_.size()) {
-            return "unknown_literal";
+        if (op_ == Operator::Literal) {
+            return names_[var_id_];
         }
         return names_[static_cast<int>(op_)];
     }

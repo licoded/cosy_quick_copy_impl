@@ -28,8 +28,6 @@ TEST_CASE("FormulaParser: Binary operator precedence", "[parser][precedence]") {
 }
 
 TEST_CASE("FormulaParser: Parentheses override precedence", "[parser][precedence]") {
-    Formula parser;
-
     // (a | b) & c should be (a | b) & c
     auto f = new Formula("(a | b) & c");
     REQUIRE(f != nullptr);

@@ -186,23 +186,20 @@ std::string Formula::toString() const {
         throw std::runtime_error("Invalid formula: binary operator without right operand");
     }
 
-    // Unary prefix operators: Not
-    if (op_ == Operator::Not) {
-        return "!" + parenthesize_if_binary(right_);
+    const std::string& op_str = names_[static_cast<int>(op_)];
+
+    // Unary prefix operators: Not, Next, WNext
+    if (!is_binary()) {
+        return op_str + parenthesize_if_binary(right_);
     }
 
-    // Unary prefix operators: Next, WNext
-    if (left_ == nullptr) {
-        return names_[static_cast<int>(op_)] + parenthesize_if_binary(right_);
-    }
-
-    // Binary operators
+    // F(uture), G(lobal)
     if (left_->op_ == Operator::True && op_ == Operator::Until)
         return "F" + parenthesize_if_binary(right_);
     if (left_->op_ == Operator::False && op_ == Operator::Release)
         return "G" + parenthesize_if_binary(right_);
 
-    return format_binary(left_, names_[static_cast<int>(op_)], right_);
+    return format_binary(left_, op_str, right_);
 }
 
 } // namespace Cosy

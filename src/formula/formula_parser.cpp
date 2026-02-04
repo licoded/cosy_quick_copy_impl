@@ -30,12 +30,12 @@ Formula::Formula(const char* input) {
     if (input == nullptr || std::strlen(input) == 0) {
         throw std::invalid_argument("Input formula cannot be empty");
     }
-    ltl_formula* formula = getAST(input);
-    if (formula == nullptr) {
+    ltl_formula* ast = getAST(input);
+    if (ast == nullptr) {
         throw std::runtime_error("Failed to parse formula");
     }
-    build(formula);
-    destroy_formula(formula);
+    build(ast);
+    destroy_formula(ast);
 }
 
 Formula::Formula(const ltl_formula* formula) {

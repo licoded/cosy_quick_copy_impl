@@ -40,20 +40,8 @@ private:
     Formula* left_ = nullptr;
     Formula* right_ = nullptr;
 
-    std::string error_message_;
-
     static std::vector<std::string> names_;
     static std::unordered_map<std::string, int> ids_;
-
-    Formula* parse(const char* input) {
-        try {
-            return new Formula(input);
-        } catch (const std::exception& e) {
-            error_message_ = e.what();
-            return nullptr;
-        }
-    }
-    const std::string& error() const { return error_message_; }
 };
 
 } // namespace Cosy

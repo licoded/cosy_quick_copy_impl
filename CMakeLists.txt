@@ -15,7 +15,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Formula library
 # ------------------------------------------------------------------
 add_library(formula STATIC
-    src/formula/formula.cpp
     src/formula/formula_parser.cpp
     deps/internal/ltlparser/ltl_formula.c
     deps/internal/ltlparser/ltllexer.c

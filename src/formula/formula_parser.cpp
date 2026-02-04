@@ -1,7 +1,6 @@
 #include "formula/formula_parser.hpp"
 #include "ltlparser/trans.h"
 #include <stdexcept>
-#include <iostream>
 #include <cassert>
 #include <string>
 #include <vector>
@@ -28,13 +27,10 @@ Formula::Formula(const char* input) {
         names_.push_back("R");
         names_.push_back("Undefined");
     }
-    std::cout << "Before getAST: " << input << std::endl;
     if (input == nullptr || std::strlen(input) == 0) {
         throw std::invalid_argument("Input formula cannot be empty");
     }
     ltl_formula* formula = getAST(input);
-    std::cout << "After getAST: " << input << std::endl;
-    std::cout << "Parsing: " << input << std::endl;
     build(formula, false);
     destroy_formula(formula);
 }

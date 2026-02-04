@@ -164,14 +164,8 @@ std::string parenthesize_if_binary(const Formula* f) {
 
 // Helper: format binary operator expression with proper parentheses
 std::string format_binary(const Formula* left, const std::string& op, const Formula* right) {
-    std::string left_str = left->toString();
-    if (left->is_binary()) {
-        left_str = parenthesize_if_binary(left);
-    }
-    std::string right_str = right->toString();
-    if (right->is_binary()) {
-        right_str = parenthesize_if_binary(right);
-    }
+    std::string left_str = parenthesize_if_binary(left);
+    std::string right_str = parenthesize_if_binary(right);
     return left_str + " " + op + " " + right_str;
 }
 

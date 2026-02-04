@@ -11,8 +11,17 @@ namespace Cosy {
 std::vector<std::string> Formula::names_;
 std::unordered_map<std::string, int> Formula::ids_;
 
+namespace {
+    // Forward declaration
+    Formula* build_formula(const ltl_formula* ast);
+}
+
 Formula::Formula(Operator op, Formula* left, Formula* right, unsigned int var_id)
     : op_(op), left_(left), right_(right), var_id_(var_id) {}
+
+Formula::Formula(const std::string& str) {
+    *this = *Formula::parse(str);
+}
 
 Formula* Formula::parse(const std::string& input) {
     if (names_.empty()) {

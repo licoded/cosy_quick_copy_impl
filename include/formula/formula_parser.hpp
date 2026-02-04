@@ -27,6 +27,7 @@ public:
 
     Formula() = delete;
     Formula(Operator op, Formula* left, Formula* right, unsigned int var_id = 0);
+    Formula(const std::string& str);
     static Formula* parse(const std::string& str);
     ~Formula();
 

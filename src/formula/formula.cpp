@@ -24,19 +24,7 @@ Formula::Formula(const std::string& str) {
 }
 
 Formula* Formula::parse(const std::string& input) {
-    if (names_.empty()) {
-        names_.push_back("true");
-        names_.push_back("false");
-        names_.push_back("Literal");
-        names_.push_back("!");
-        names_.push_back("|");
-        names_.push_back("&");
-        names_.push_back("X[!]");
-        names_.push_back("X");
-        names_.push_back("U");
-        names_.push_back("R");
-        names_.push_back("Undefined");
-    }
+    initialize_operator_names(names_);
     if (input.empty()) {
         throw std::invalid_argument("Input formula cannot be empty");
     }
@@ -67,15 +55,7 @@ Formula *Formula::make_false() {
 }
 
 Formula* Formula::make_literal(const std::string& var_name) {
-    auto it = ids_.find(var_name);
-    unsigned int id;
-    if (it == ids_.end()) {
-        id = names_.size();
-        ids_[var_name] = id;
-        names_.push_back(var_name);
-    } else {
-        id = it->second;
-    }
+    unsigned int id = register_variable_name(var_name, names_, ids_);
     return new Formula(Operator::Literal, nullptr, nullptr, id);
 }
 

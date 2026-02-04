@@ -14,7 +14,7 @@ std::unordered_map<std::string, int> Formula::ids_;
 
 Formula::Formula() = default;
 
-Formula::Formula(const char* input, bool is_ltlf) {
+Formula::Formula(const char* input) {
     if (names_.empty()) {
         names_.push_back("true");
         names_.push_back("false");
@@ -23,7 +23,7 @@ Formula::Formula(const char* input, bool is_ltlf) {
         names_.push_back("|");
         names_.push_back("&");
         names_.push_back("X[!]");
-        names_.push_back("X"); // weak Next, for LTLf
+        names_.push_back("X");
         names_.push_back("U");
         names_.push_back("R");
         names_.push_back("Undefined");
@@ -35,12 +35,12 @@ Formula::Formula(const char* input, bool is_ltlf) {
     ltl_formula* formula = getAST(input);
     std::cout << "After getAST: " << input << std::endl;
     std::cout << "Parsing: " << input << std::endl;
-build(formula, false, is_ltlf);
+    build(formula, false);
     destroy_formula(formula);
 }
 
-Formula::Formula(const ltl_formula* formula, bool is_not, bool is_ltlf) {
-    build(formula, is_not, is_ltlf);
+Formula::Formula(const ltl_formula* formula, bool is_not) {
+    build(formula, is_not);
 }
 
 Formula::~Formula() {
@@ -48,7 +48,7 @@ Formula::~Formula() {
     delete right_;
 }
 
-void Formula::build(const ltl_formula* formula, bool is_not, bool is_ltlf) {
+void Formula::build(const ltl_formula* formula, bool is_not) {
     if (formula == nullptr) {
         op_ = Operator::Undefined;
         return;
@@ -65,53 +65,52 @@ void Formula::build(const ltl_formula* formula, bool is_not, bool is_ltlf) {
             build_atom(formula->_var, is_not);
             break;
         case eNOT:
-            build(formula->_right, !is_not, is_ltlf);
+            build(formula->_right, !is_not);
             break;
         case eNEXT:
-            op_ = (is_ltlf && is_not) ? Operator::WNext : Operator::Next;
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            op_ = Operator::Next;
+            right_ = new Formula(formula->_right, false);
             break;
         case eWNEXT:
-            if (!is_ltlf) throw std::runtime_error("is_ltlf must be true for weak next operator (WNEXT)!");
-            op_ = is_not ? Operator::Next : Operator::WNext;
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            op_ = Operator::WNext;
+            right_ = new Formula(formula->_right, false);
             break;
         case eGLOBALLY: // G a = false R a -- [!(G a) = true U !a]
             op_ = is_not ? Operator::Until : Operator::Release;
             left_ = new Formula();
             left_->op_ = is_not ? Operator::True : Operator::False;
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            right_ = new Formula(formula->_right, is_not);
             break;
         case eFUTURE: // F a = true U a -- [!(F a) = false R !a]
             op_ = is_not ? Operator::Release : Operator::Until;
             left_ = new Formula();
             left_->op_ = is_not ? Operator::False : Operator::True;
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            right_ = new Formula(formula->_right, is_not);
             break;
         case eUNTIL:
             op_ = is_not ? Operator::Release : Operator::Until;
-            left_ = new Formula(formula->_left, is_not, is_ltlf);
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            left_ = new Formula(formula->_left, is_not);
+            right_ = new Formula(formula->_right, is_not);
             break;
         case eRELEASE:
             op_ = is_not ? Operator::Until : Operator::Release;
-            left_ = new Formula(formula->_left, is_not, is_ltlf);
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            left_ = new Formula(formula->_left, is_not);
+            right_ = new Formula(formula->_right, is_not);
             break;
         case eAND:
             op_ = is_not ? Operator::Or : Operator::And;
-            left_ = new Formula(formula->_left, is_not, is_ltlf);
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            left_ = new Formula(formula->_left, is_not);
+            right_ = new Formula(formula->_right, is_not);
             break;
         case eOR:
             op_ = is_not ? Operator::And : Operator::Or;
-            left_ = new Formula(formula->_left, is_not, is_ltlf);
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            left_ = new Formula(formula->_left, is_not);
+            right_ = new Formula(formula->_right, is_not);
             break;
         case eIMPLIES: // a->b = !a | b -- [!(a->b) = a & !b]
             op_ = is_not ? Operator::And : Operator::Or;
-            left_ = new Formula(formula->_left, !is_not, is_ltlf);
-            right_ = new Formula(formula->_right, is_not, is_ltlf);
+            left_ = new Formula(formula->_left, !is_not);
+            right_ = new Formula(formula->_right, is_not);
             break;
         case eEQUIV: {
             ltl_formula* not_a = create_operation(eNOT, NULL, formula->_left);
@@ -119,7 +118,7 @@ void Formula::build(const ltl_formula* formula, bool is_not, bool is_ltlf) {
             ltl_formula* new_left = create_operation(eOR, not_a, formula->_right);
             ltl_formula* new_right = create_operation(eOR, not_b, formula->_left);
             ltl_formula* now = create_operation(eAND, new_left, new_right);
-            build(now, is_not, is_ltlf);
+            build(now, is_not);
             destroy_node(not_a);
             destroy_node(not_b);
             destroy_node(new_left);

@@ -4,7 +4,7 @@
 using namespace Cosy;
 
 TEST_CASE("FormulaParser: Parse literals", "[parser]") {
-    Formula f1("true", true);
+    Formula f1("true");
     REQUIRE(f1.toString() == "true");
 
     Formula f2("false");

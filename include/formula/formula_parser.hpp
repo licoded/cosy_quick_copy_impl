@@ -19,21 +19,21 @@ public:
         Or,
         And,
         Next,
-        WNext, // weak Next, for LTLf
+        WNext,
         Until,
         Release,
         Undefined
     };
 
     Formula();
-    Formula(const char* input, bool is_ltlf = false);
-    Formula(const ltl_formula* formula, bool is_not = false, bool is_ltlf = false);
+    Formula(const char* input);
     ~Formula();
 
     std::string toString() const;
 
 private:
-    void build(const ltl_formula* formula, bool is_not = false, bool is_ltlf = false);
+    Formula(const ltl_formula* formula, bool is_not = false);
+    void build(const ltl_formula* formula, bool is_not = false);
     void build_atom(const char* name, bool is_not = false);
 
     Operator op_ = Operator::Undefined;
@@ -45,9 +45,9 @@ private:
     static std::vector<std::string> names_;
     static std::unordered_map<std::string, int> ids_;
 
-    Formula* parse(const char* input, bool is_ltlf = false) {
+    Formula* parse(const char* input) {
         try {
-            return new Formula(input, is_ltlf);
+            return new Formula(input);
         } catch (const std::exception& e) {
             error_message_ = e.what();
             return nullptr;

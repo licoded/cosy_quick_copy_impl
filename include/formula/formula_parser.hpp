@@ -25,21 +25,25 @@ public:
         Undefined
     };
 
-    Formula();
-    Formula(const char* input);
+    Formula() = delete;
+    Formula(Operator op, Formula* left, Formula* right, unsigned int var_id = 0);
+    static Formula* parse(const std::string& str);
     ~Formula();
 
     std::string toString() const;
     bool is_binary() const;
 
-private:
-    Formula(const ltl_formula* formula);
-    void build(const ltl_formula* formula);
-    void build_atom(const char* name);
+    static Formula* make_true();
+    static Formula* make_false();
+    static Formula* make_literal(const std::string& name);
+    static Formula* make_unary(Operator op, Formula* operand);
+    static Formula* make_binary(Operator op, Formula* left, Formula* right);
 
+private:
     Operator op_ = Operator::Undefined;
     Formula* left_ = nullptr;
     Formula* right_ = nullptr;
+    unsigned int var_id_ = 0;
 
     static std::vector<std::string> names_;
     static std::unordered_map<std::string, int> ids_;

@@ -3,6 +3,14 @@
 
 namespace Cosy {
 
+namespace {
+    SymbolTable global_symbol_table;
+}
+
+SymbolTable& get_global_symbol_table() {
+    return global_symbol_table;
+}
+
 void SymbolTable::initialize_operators() {
     if (names_.empty()) {
         names_.push_back("true");

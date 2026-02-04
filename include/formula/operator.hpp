@@ -31,4 +31,7 @@ private:
     std::unordered_map<std::string, int> ids_;
 };
 
+// Global symbol table accessor
+SymbolTable& get_global_symbol_table();
+
 } // namespace Cosy

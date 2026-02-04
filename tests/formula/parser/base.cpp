@@ -16,16 +16,16 @@ TEST_CASE("FormulaParser: Parse literals", "[parser]") {
 
 TEST_CASE("FormulaParser: Parse unary operators", "[parser]") {
     Formula f1("!a");
-    REQUIRE(f1.toString() == "!(a)");
+    REQUIRE(f1.toString() == "!a");
 
     Formula f2("X a");
-    REQUIRE(f2.toString() == "X(a)");
+    REQUIRE(f2.toString() == "Xa");
 
     Formula f3("X (a & b)");
     REQUIRE(f3.toString() == "X(a & b)");
 
     Formula f4("! X a");
-    REQUIRE(f4.toString() == "!(X(a))");
+    REQUIRE(f4.toString() == "!Xa");
 }
 
 TEST_CASE("FormulaParser: Parse binary operators", "[parser]") {

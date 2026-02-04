@@ -154,19 +154,23 @@ bool Formula::is_binary() const {
 namespace {
 
 // Helper: wrap string in parentheses if not already wrapped
-std::string maybe_parenthesize(const std::string& s) {
-    return (s.empty() || s[0] != '(') ? "(" + s + ")" : s;
+std::string maybe_parenthesize(const Formula* inner) {
+    std::string s = inner->toString();
+    if (inner->is_binary()) {
+        s = "(" + s + ")";
+    }
+    return s;
 }
 
 // Helper: format binary operator expression with proper parentheses
 std::string format_binary(const Formula* left, const std::string& op, const Formula* right) {
     std::string left_str = left->toString();
     if (left->is_binary()) {
-        left_str = maybe_parenthesize(left_str);
+        left_str = maybe_parenthesize(left);
     }
     std::string right_str = right->toString();
     if (right->is_binary()) {
-        right_str = maybe_parenthesize(right_str);
+        right_str = maybe_parenthesize(right);
     }
     return left_str + " " + op + " " + right_str;
 }
@@ -190,19 +194,19 @@ std::string Formula::toString() const {
 
     // Unary prefix operators: Not
     if (op_ == Operator::Not) {
-        return "!" + maybe_parenthesize(right_->toString());
+        return "!" + maybe_parenthesize(right_);
     }
 
     // Unary prefix operators: Next, WNext
     if (left_ == nullptr) {
-        return names_[static_cast<int>(op_)] + maybe_parenthesize(right_->toString());
+        return names_[static_cast<int>(op_)] + maybe_parenthesize(right_);
     }
 
     // Binary operators
     if (left_->op_ == Operator::True && op_ == Operator::Until)
-        return "F" + maybe_parenthesize(right_->toString());
+        return "F" + maybe_parenthesize(right_);
     if (left_->op_ == Operator::False && op_ == Operator::Release)
-        return "G" + maybe_parenthesize(right_->toString());
+        return "G" + maybe_parenthesize(right_);
 
     return format_binary(left_, names_[static_cast<int>(op_)], right_);
 }

@@ -1,4 +1,4 @@
-#include "formula/formula_parser.hpp"
+#include "formula/formula.hpp"
 #include "ltlparser/trans.h"
 #include <stdexcept>
 #include <cassert>
@@ -59,11 +59,11 @@ bool Formula::is_binary() const {
 }
 
 Formula *Formula::make_true() {
-    return new Formula(Formula::Operator::True, nullptr, nullptr);
+    return new Formula(Operator::True, nullptr, nullptr);
 }
 
 Formula *Formula::make_false() {
-    return new Formula(Formula::Operator::False, nullptr, nullptr);
+    return new Formula(Operator::False, nullptr, nullptr);
 }
 
 Formula* Formula::make_literal(const std::string& var_name) {
@@ -127,34 +127,34 @@ Formula* build_formula(const ltl_formula* ast) {
         case eLITERAL:
             return Formula::make_literal(ast->_var);
         case eNOT:
-            return Formula::make_unary(Formula::Operator::Not, right);
+            return Formula::make_unary(Operator::Not, right);
         case eNEXT:
-            return Formula::make_unary(Formula::Operator::Next, right);
+            return Formula::make_unary(Operator::Next, right);
         case eWNEXT:
-            return Formula::make_unary(Formula::Operator::WNext, right);
+            return Formula::make_unary(Operator::WNext, right);
         case eGLOBALLY:
-            return Formula::make_binary(Formula::Operator::Release, Formula::make_false(), right);
+            return Formula::make_binary(Operator::Release, Formula::make_false(), right);
         case eFUTURE:
-            return Formula::make_binary(Formula::Operator::Until, Formula::make_true(), right);
+            return Formula::make_binary(Operator::Until, Formula::make_true(), right);
         case eUNTIL:
-            return Formula::make_binary(Formula::Operator::Until, left, right);
+            return Formula::make_binary(Operator::Until, left, right);
         case eRELEASE:
-            return Formula::make_binary(Formula::Operator::Release, Formula::make_false(), right);
+            return Formula::make_binary(Operator::Release, Formula::make_false(), right);
         case eAND:
-            return Formula::make_binary(Formula::Operator::And, left, right);
+            return Formula::make_binary(Operator::And, left, right);
         case eOR:
-            return Formula::make_binary(Formula::Operator::Or, left, right);
+            return Formula::make_binary(Operator::Or, left, right);
         case eIMPLIES: {
-            Formula* not_left = Formula::make_unary(Formula::Operator::Not, left);
-            Formula* result = Formula::make_binary(Formula::Operator::Or, not_left, right);
+            Formula* not_left = Formula::make_unary(Operator::Not, left);
+            Formula* result = Formula::make_binary(Operator::Or, not_left, right);
             return result;
         }
         case eEQUIV: {
-            Formula* not_left = Formula::make_unary(Formula::Operator::Not, left);
-            Formula* not_right = Formula::make_unary(Formula::Operator::Not, right);
-            Formula* left_implies_right = Formula::make_binary(Formula::Operator::Or, not_left, right);
-            Formula* right_implies_left = Formula::make_binary(Formula::Operator::Or, not_right, left);
-            Formula* result = Formula::make_binary(Formula::Operator::And, left_implies_right, right_implies_left);
+            Formula* not_left = Formula::make_unary(Operator::Not, left);
+            Formula* not_right = Formula::make_unary(Operator::Not, right);
+            Formula* left_implies_right = Formula::make_binary(Operator::Or, not_left, right);
+            Formula* right_implies_left = Formula::make_binary(Operator::Or, not_right, left);
+            Formula* result = Formula::make_binary(Operator::And, left_implies_right, right_implies_left);
             return result;
         }
         default:

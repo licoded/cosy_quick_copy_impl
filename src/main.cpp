@@ -1,4 +1,4 @@
-#include "formula/formula_parser.hpp"
+#include "formula/formula.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[]) {

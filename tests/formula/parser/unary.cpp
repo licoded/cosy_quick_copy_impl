@@ -1,4 +1,4 @@
-#include "formula/formula_parser.hpp"
+#include "formula/formula.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 

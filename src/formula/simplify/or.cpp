@@ -40,7 +40,10 @@ Formula* OrSimplifier::simplify(Formula* left, Formula* right, FormulaBuilder& b
         return true_f;
     }
 
-    // TODO: Phase 3: Check for tautologies (a | !a)
+    // Phase 3: Check for tautologies (a | !a)
+    if (SimplifyUtil::has_complementary_literals(new_terms, builder)) {
+        return true_f;
+    }
 
     // Rebuild chain from deduplicated terms
     return SimplifyUtil::rebuild_chain(builder, new_terms, Operator::Or);

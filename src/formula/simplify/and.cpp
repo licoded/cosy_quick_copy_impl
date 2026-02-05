@@ -40,7 +40,10 @@ Formula* AndSimplifier::simplify(Formula* left, Formula* right, FormulaBuilder& 
         return false_f;
     }
 
-    // TODO: Phase 3: Check for conflicts (a & !a)
+    // Phase 3: Check for conflicts (a & !a)
+    if (SimplifyUtil::has_complementary_literals(new_terms, builder)) {
+        return false_f;
+    }
 
     // Rebuild chain from deduplicated terms
     return SimplifyUtil::rebuild_chain(builder, new_terms, Operator::And);

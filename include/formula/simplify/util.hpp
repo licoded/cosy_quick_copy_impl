@@ -42,7 +42,20 @@ void collect_binary_terms(Formula* f, std::set<Formula*>& terms, Operator op);
  */
 Formula* rebuild_chain(FormulaBuilder& builder, const std::set<Formula*>& terms, Operator op);
 
-// TODO: Add has_complementary_literals for detecting a & !a or a | !a
+/**
+ * @brief Check if terms contain complementary literals (a and !a)
+ *
+ * For AND: detects conflicts (a & !a → False)
+ * For OR: detects tautologies (a | !a → True)
+ *
+ * Algorithm: separate positive/negative literals, check for pairs.
+ * Due to hash consing, Not(a) has a unique pointer for identical negations.
+ *
+ * @param terms Set of terms to check
+ * @param builder FormulaBuilder for creating Not formulas
+ * @return true if complementary pair found
+ */
+bool has_complementary_literals(const std::set<Formula*>& terms, FormulaBuilder& builder);
 
 } // namespace SimplifyUtil
 

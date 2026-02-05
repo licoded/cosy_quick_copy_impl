@@ -16,10 +16,34 @@ bool FormulaBuilder::FormulaEqual::operator()(const Formula* a, const Formula* b
     // One is null, other is not
     if (!a || !b) return false;
 
-    // Structural comparison
-    return a->hash() == b->hash() &&
-           a->op_ == b->op_ &&
-           a->left_ == b->left_ &&
+    // Must have same operator and hash
+    if (a->op_ != b->op_ || a->hash() != b->hash()) {
+        return false;
+    }
+
+    // For commutative operators (And, Or), normalize order before comparison
+    if (a->op_ == Operator::And || a->op_ == Operator::Or) {
+        Formula* a_left = a->left_;
+        Formula* a_right = a->right_;
+        Formula* b_left = b->left_;
+        Formula* b_right = b->right_;
+
+        // Normalize a's children
+        if (a_left && a_right && a_left > a_right) {
+            std::swap(a_left, a_right);
+        }
+
+        // Normalize b's children
+        if (b_left && b_right && b_left > b_right) {
+            std::swap(b_left, b_right);
+        }
+
+        // Compare normalized children
+        return a_left == b_left && a_right == b_right;
+    }
+
+    // For non-commutative operators, strict structural comparison
+    return a->left_ == b->left_ &&
            a->right_ == b->right_ &&
            a->var_id_ == b->var_id_;
 }

@@ -44,13 +44,11 @@ TEST_CASE("HashConsing: AND commutativity", "[hash_consing][canonicalization]") 
     Formula* ab = ctx.parse_formula("a & b");
     Formula* ba = ctx.parse_formula("b & a");
 
-    // Before simplify, they are different
-    REQUIRE(ab != ba);
+    // With commutativity optimization, they are canonicalized at creation time
+    REQUIRE(ab == ba);
 
-    // After simplify, they should be canonicalized to the same formula
-    Formula* ab_simplified = ab->simplify();
-    Formula* ba_simplified = ba->simplify();
-    REQUIRE(ab_simplified == ba_simplified);
+    // Hash values should also be identical
+    REQUIRE(ab->hash() == ba->hash());
 }
 
 TEST_CASE("HashConsing: OR commutativity", "[hash_consing][canonicalization]") {
@@ -58,13 +56,11 @@ TEST_CASE("HashConsing: OR commutativity", "[hash_consing][canonicalization]") {
     Formula* ab = ctx.parse_formula("a | b");
     Formula* ba = ctx.parse_formula("b | a");
 
-    // Before simplify, they are different
-    REQUIRE(ab != ba);
+    // With commutativity optimization, they are canonicalized at creation time
+    REQUIRE(ab == ba);
 
-    // After simplify, they should be canonicalized to the same formula
-    Formula* ab_simplified = ab->simplify();
-    Formula* ba_simplified = ba->simplify();
-    REQUIRE(ab_simplified == ba_simplified);
+    // Hash values should also be identical
+    REQUIRE(ab->hash() == ba->hash());
 }
 
 TEST_CASE("HashConsing: AND associativity", "[hash_consing][canonicalization]") {

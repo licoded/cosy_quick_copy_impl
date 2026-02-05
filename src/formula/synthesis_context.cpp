@@ -27,8 +27,8 @@ Formula* SynthesisContext::parse_formula(const std::string& str) {
     return formula_builder_->parse(str);
 }
 
-Formula* SynthesisContext::create_formula(Operator op, Formula* left, Formula* right, unsigned int var_id, size_t hash) {
-    Formula* formula = new Formula(op, left, right, var_id, hash, this);
+Formula* SynthesisContext::create_formula(Operator op, Formula* left, Formula* right, unsigned int var_id) {
+    Formula* formula = new Formula(op, left, right, var_id, this);
     formulas_.emplace_back(formula);
     return formula;
 }

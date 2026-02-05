@@ -35,9 +35,6 @@ private:
 
     using UniqueTable = std::unordered_set<Formula*, FormulaHash, FormulaEqual>;
 
-    // Helper methods
-    static size_t compute_hash(Operator op, Formula* left, Formula* right, unsigned int var_id);
-
     SynthesisContext& context_;
     UniqueTable unique_table_;
     Formula* true_formula_ = nullptr;

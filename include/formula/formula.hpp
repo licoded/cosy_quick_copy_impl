@@ -8,6 +8,7 @@ namespace Cosy {
 class FormulaBuilder;
 class FormulaStringifier;
 class SynthesisContext;
+class FormulaHasher;
 
 class Formula {
 public:
@@ -29,7 +30,12 @@ private:
     friend class FormulaBuilder;
     friend class FormulaStringifier;
     friend class SynthesisContext;
+    friend class FormulaHasher;
 
+    // Normal constructor - computes hash automatically
+    Formula(Operator op, Formula* left, Formula* right, unsigned int var_id, SynthesisContext* context);
+
+    // Private constructor for creating temporary keys in hash consing (does not compute hash)
     Formula(Operator op, Formula* left, Formula* right, unsigned int var_id, size_t hash, SynthesisContext* context);
 
     SynthesisContext* context_;

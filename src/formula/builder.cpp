@@ -1,6 +1,7 @@
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
 #include "formula/synthesis_context.hpp"
+#include "formula/hash.hpp"
 #include "ltlparser/trans.h"
 #include <stdexcept>
 
@@ -21,23 +22,6 @@ bool FormulaBuilder::FormulaEqual::operator()(const Formula* a, const Formula* b
            a->left_ == b->left_ &&
            a->right_ == b->right_ &&
            a->var_id_ == b->var_id_;
-}
-
-size_t FormulaBuilder::compute_hash(Operator op, Formula* left, Formula* right, unsigned int var_id) {
-    // Hash combination using boost::hash_combine style
-    size_t h = static_cast<size_t>(op);
-
-    if (left) {
-        h ^= left->hash() + 0x9e3779b9 + (h << 6) + (h >> 2);
-    }
-    if (right) {
-        h ^= right->hash() + 0x9e3779b9 + (h << 6) + (h >> 2);
-    }
-    if (op == Operator::Literal) {
-        h ^= static_cast<size_t>(var_id) + 0x9e3779b9 + (h << 6) + (h >> 2);
-    }
-
-    return h;
 }
 
 // ========== Public API ==========
@@ -70,8 +54,7 @@ Formula* FormulaBuilder::make_true() {
     }
 
     // Create new True formula
-    size_t hash = compute_hash(Operator::True, nullptr, nullptr, 0);
-    true_formula_ = context_.create_formula(Operator::True, nullptr, nullptr, 0, hash);
+    true_formula_ = context_.create_formula(Operator::True, nullptr, nullptr, 0);
     unique_table_.insert(true_formula_);
     return true_formula_;
 }
@@ -83,8 +66,7 @@ Formula* FormulaBuilder::make_false() {
     }
 
     // Create new False formula
-    size_t hash = compute_hash(Operator::False, nullptr, nullptr, 0);
-    false_formula_ = context_.create_formula(Operator::False, nullptr, nullptr, 0, hash);
+    false_formula_ = context_.create_formula(Operator::False, nullptr, nullptr, 0);
     unique_table_.insert(false_formula_);
     return false_formula_;
 }
@@ -92,8 +74,8 @@ Formula* FormulaBuilder::make_false() {
 Formula* FormulaBuilder::make_literal(const std::string& var_name) {
     unsigned int id = context_.symbols().get_or_create_variable_id(var_name);
 
-    // Compute hash
-    size_t hash = compute_hash(Operator::Literal, nullptr, nullptr, id);
+    // Compute hash for lookup
+    size_t hash = FormulaHasher::compute(Operator::Literal, nullptr, nullptr, id);
 
     // Create temporary key for lookup
     Formula key(Operator::Literal, nullptr, nullptr, id, hash, &context_);
@@ -104,8 +86,8 @@ Formula* FormulaBuilder::make_literal(const std::string& var_name) {
         return *it; // Found existing
     }
 
-    // Not found, create new
-    Formula* new_formula = context_.create_formula(Operator::Literal, nullptr, nullptr, id, hash);
+    // Not found, create new (will compute hash automatically)
+    Formula* new_formula = context_.create_formula(Operator::Literal, nullptr, nullptr, id);
     unique_table_.insert(new_formula);
     return new_formula;
 }
@@ -115,8 +97,8 @@ Formula* FormulaBuilder::make_unary(Operator op, Formula* sub_formula) {
         throw std::invalid_argument("Invalid unary operator");
     }
 
-    // Compute hash
-    size_t hash = compute_hash(op, nullptr, sub_formula, 0);
+    // Compute hash for lookup
+    size_t hash = FormulaHasher::compute(op, nullptr, sub_formula, 0);
 
     // Create temporary key for lookup
     Formula key(op, nullptr, sub_formula, 0, hash, &context_);
@@ -127,8 +109,8 @@ Formula* FormulaBuilder::make_unary(Operator op, Formula* sub_formula) {
         return *it; // Found existing
     }
 
-    // Not found, create new
-    Formula* new_formula = context_.create_formula(op, nullptr, sub_formula, 0, hash);
+    // Not found, create new (will compute hash automatically)
+    Formula* new_formula = context_.create_formula(op, nullptr, sub_formula, 0);
     unique_table_.insert(new_formula);
     return new_formula;
 }
@@ -139,7 +121,7 @@ Formula* FormulaBuilder::make_binary(Operator op, Formula* left, Formula* right)
     }
 
     // Pure hash consing: only check for structural equality
-    size_t hash = compute_hash(op, left, right, 0);
+    size_t hash = FormulaHasher::compute(op, left, right, 0);
     Formula key(op, left, right, 0, hash, &context_);
 
     auto it = unique_table_.find(&key);
@@ -147,7 +129,7 @@ Formula* FormulaBuilder::make_binary(Operator op, Formula* left, Formula* right)
         return *it;
     }
 
-    Formula* new_formula = context_.create_formula(op, left, right, 0, hash);
+    Formula* new_formula = context_.create_formula(op, left, right, 0);
     unique_table_.insert(new_formula);
     return new_formula;
 }

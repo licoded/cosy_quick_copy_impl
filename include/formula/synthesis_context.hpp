@@ -24,7 +24,7 @@ public:
     Formula* parse_formula(const std::string& str);
 
     // Formula生命周期管理（供FormulaBuilder使用）
-    Formula* create_formula(Operator op, Formula* left, Formula* right, unsigned int var_id, size_t hash);
+    Formula* create_formula(Operator op, Formula* left, Formula* right, unsigned int var_id);
 
 private:
     SymbolTable* symbols_;

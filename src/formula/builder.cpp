@@ -2,7 +2,6 @@
 #include "formula/formula.hpp"
 #include "formula/synthesis_context.hpp"
 #include "ltlparser/trans.h"
-#include <set>
 #include <stdexcept>
 
 namespace Cosy {
@@ -39,59 +38,6 @@ size_t FormulaBuilder::compute_hash(Operator op, Formula* left, Formula* right, 
     }
 
     return h;
-}
-
-Formula* FormulaBuilder::make_binary_raw(Operator op, Formula* left, Formula* right) {
-    // Raw binary creation without canonicalization (used internally by rebuild_chain)
-    size_t hash = compute_hash(op, left, right, 0);
-    Formula key(op, left, right, 0, hash, &context_);
-
-    auto it = unique_table_.find(&key);
-    if (it != unique_table_.end()) {
-        return *it;
-    }
-
-    Formula* new_formula = context_.create_formula(op, left, right, 0, hash);
-    unique_table_.insert(new_formula);
-    return new_formula;
-}
-
-// ========== Canonicalization Helpers ==========
-
-void FormulaBuilder::collect_terms(Formula* f, std::set<Formula*>& terms, Operator op) {
-    if (!f) return;
-
-    if (f->op() == op) {
-        // Flatten chain: collect both sides
-        collect_terms(f->left(), terms, op);
-        collect_terms(f->right(), terms, op);
-    } else {
-        // Leaf term
-        terms.insert(f);
-    }
-}
-
-Formula* FormulaBuilder::rebuild_chain(const std::set<Formula*>& terms, Operator op) {
-    if (terms.empty()) {
-        // Identity element
-        return (op == Operator::And) ? make_true() : make_false();
-    }
-
-    if (terms.size() == 1) {
-        return *terms.begin();
-    }
-
-    // Build right-leaning chain
-    auto it = terms.begin();
-    Formula* result = *it;
-    ++it;
-
-    for (; it != terms.end(); ++it) {
-        // Use make_binary_raw to avoid re-canonicalization
-        result = make_binary_raw(op, result, *it);
-    }
-
-    return result;
 }
 
 // ========== Public API ==========
@@ -192,48 +138,7 @@ Formula* FormulaBuilder::make_binary(Operator op, Formula* left, Formula* right)
         throw std::invalid_argument("Invalid binary operator");
     }
 
-    // Apply canonicalization for And/Or operators
-    if (op == Operator::And || op == Operator::Or) {
-        std::set<Formula*> terms;
-
-        // Phase 1: Flatten nested structures
-        collect_terms(left, terms, op);
-        collect_terms(right, terms, op);
-
-        // Phase 2: Apply simplification rules
-        if (op == Operator::And) {
-            // Check for False (dominance: False & anything → False)
-            Formula* false_f = make_false();
-            if (terms.find(false_f) != terms.end()) {
-                return false_f;
-            }
-
-            // Remove True (identity: True & x → x)
-            Formula* true_f = make_true();
-            terms.erase(true_f);
-
-            // TODO: Check for complementary literals (a & !a → False)
-        } else { // Or
-            // Check for True (dominance: True | anything → True)
-            Formula* true_f = make_true();
-            if (terms.find(true_f) != terms.end()) {
-                return true_f;
-            }
-
-            // Remove False (identity: False | x → x)
-            Formula* false_f = make_false();
-            terms.erase(false_f);
-
-            // TODO: Check for complementary literals (a | !a → True)
-        }
-
-        // Phase 3: Rebuild canonicalized chain
-        return rebuild_chain(terms, op);
-    }
-
-    // TODO: Add canonicalization for Until/Release operators
-
-    // For other operators, use standard hash consing
+    // Pure hash consing: only check for structural equality
     size_t hash = compute_hash(op, left, right, 0);
     Formula key(op, left, right, 0, hash, &context_);
 

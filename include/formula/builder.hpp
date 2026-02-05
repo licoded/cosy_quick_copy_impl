@@ -2,7 +2,6 @@
 
 #include "formula.hpp"
 #include "operator.hpp"
-#include <set>
 #include <string>
 #include <unordered_set>
 
@@ -38,11 +37,6 @@ private:
 
     // Helper methods
     static size_t compute_hash(Operator op, Formula* left, Formula* right, unsigned int var_id);
-    Formula* make_binary_raw(Operator op, Formula* left, Formula* right);
-
-    // Canonicalization helpers
-    static void collect_terms(Formula* f, std::set<Formula*>& terms, Operator op);
-    Formula* rebuild_chain(const std::set<Formula*>& terms, Operator op);
 
     SynthesisContext& context_;
     UniqueTable unique_table_;

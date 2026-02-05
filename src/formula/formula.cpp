@@ -2,6 +2,7 @@
 #include "formula/builder.hpp"
 #include "formula/stringifier.hpp"
 #include "formula/synthesis_context.hpp"
+#include "formula/simplify/formula_simplifier.hpp"
 
 namespace Cosy {
 
@@ -19,6 +20,10 @@ bool Formula::is_binary() const {
 
 std::string Formula::toString() const {
     return FormulaStringifier::to_string(this, context_->symbols());
+}
+
+Formula* Formula::simplify() {
+    return FormulaSimplifier::simplify(this, context_->formula_builder());
 }
 
 } // namespace Cosy

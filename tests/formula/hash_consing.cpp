@@ -1,6 +1,5 @@
 #include "formula/formula.hpp"
 #include "formula/synthesis_context.hpp"
-#include "formula/simplify.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 using namespace Cosy;
@@ -49,8 +48,8 @@ TEST_CASE("HashConsing: AND commutativity", "[hash_consing][canonicalization]") 
     REQUIRE(ab != ba);
 
     // After simplify, they should be canonicalized to the same formula
-    Formula* ab_simplified = simplify(ab, ctx.formula_builder());
-    Formula* ba_simplified = simplify(ba, ctx.formula_builder());
+    Formula* ab_simplified = ab->simplify();
+    Formula* ba_simplified = ba->simplify();
     REQUIRE(ab_simplified == ba_simplified);
 }
 
@@ -63,8 +62,8 @@ TEST_CASE("HashConsing: OR commutativity", "[hash_consing][canonicalization]") {
     REQUIRE(ab != ba);
 
     // After simplify, they should be canonicalized to the same formula
-    Formula* ab_simplified = simplify(ab, ctx.formula_builder());
-    Formula* ba_simplified = simplify(ba, ctx.formula_builder());
+    Formula* ab_simplified = ab->simplify();
+    Formula* ba_simplified = ba->simplify();
     REQUIRE(ab_simplified == ba_simplified);
 }
 
@@ -77,8 +76,8 @@ TEST_CASE("HashConsing: AND associativity", "[hash_consing][canonicalization]") 
     REQUIRE(abc1 != abc2);
 
     // After simplify with flattening, both should be canonicalized to the same form
-    Formula* abc1_simplified = simplify(abc1, ctx.formula_builder());
-    Formula* abc2_simplified = simplify(abc2, ctx.formula_builder());
+    Formula* abc1_simplified = abc1->simplify();
+    Formula* abc2_simplified = abc2->simplify();
     REQUIRE(abc1_simplified == abc2_simplified);
 }
 
@@ -91,8 +90,8 @@ TEST_CASE("HashConsing: OR associativity", "[hash_consing][canonicalization]") {
     REQUIRE(abc1 != abc2);
 
     // After simplify with flattening, both should be canonicalized to the same form
-    Formula* abc1_simplified = simplify(abc1, ctx.formula_builder());
-    Formula* abc2_simplified = simplify(abc2, ctx.formula_builder());
+    Formula* abc1_simplified = abc1->simplify();
+    Formula* abc2_simplified = abc2->simplify();
     REQUIRE(abc1_simplified == abc2_simplified);
 }
 
@@ -105,7 +104,7 @@ TEST_CASE("HashConsing: AND with True (identity)", "[hash_consing][simplificatio
     REQUIRE(a_and_true != a);
 
     // After simplify, True is identity for AND: a & true → a
-    Formula* simplified = simplify(a_and_true, ctx.formula_builder());
+    Formula* simplified = a_and_true->simplify();
     REQUIRE(simplified == a);
 }
 
@@ -118,7 +117,7 @@ TEST_CASE("HashConsing: AND with False (dominance)", "[hash_consing][simplificat
     REQUIRE(a_and_false != false_f);
 
     // After simplify, False dominates AND: a & false → false
-    Formula* simplified = simplify(a_and_false, ctx.formula_builder());
+    Formula* simplified = a_and_false->simplify();
     REQUIRE(simplified == false_f);
 }
 
@@ -131,7 +130,7 @@ TEST_CASE("HashConsing: OR with False (identity)", "[hash_consing][simplificatio
     REQUIRE(a_or_false != a);
 
     // After simplify, False is identity for OR: a | false → a
-    Formula* simplified = simplify(a_or_false, ctx.formula_builder());
+    Formula* simplified = a_or_false->simplify();
     REQUIRE(simplified == a);
 }
 
@@ -144,7 +143,7 @@ TEST_CASE("HashConsing: OR with True (dominance)", "[hash_consing][simplificatio
     REQUIRE(a_or_true != true_f);
 
     // After simplify, True dominates OR: a | true → true
-    Formula* simplified = simplify(a_or_true, ctx.formula_builder());
+    Formula* simplified = a_or_true->simplify();
     REQUIRE(simplified == true_f);
 }
 

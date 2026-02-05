@@ -17,6 +17,7 @@ public:
     std::string toString() const;
     bool is_binary() const;
     size_t hash() const { return hash_; }
+    Formula* simplify();
 
     // Accessors for canonicalization
     Operator op() const { return op_; }

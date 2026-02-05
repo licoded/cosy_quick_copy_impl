@@ -20,7 +20,9 @@ add_library(formula STATIC
     src/formula/builder.cpp
     src/formula/stringifier.cpp
     src/formula/synthesis_context.cpp
-    src/formula/simplify.cpp
+    src/formula/simplify/and_simplifier.cpp
+    src/formula/simplify/or_simplifier.cpp
+    src/formula/simplify/formula_simplifier.cpp
     deps/internal/ltlparser/ltl_formula.c
     deps/internal/ltlparser/ltllexer.c
     deps/internal/ltlparser/ltlparser.c

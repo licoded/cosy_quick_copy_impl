@@ -89,3 +89,39 @@ TEST_CASE("Simplify OR: complementary literals in nested structure", "[simplify]
     Formula* simplified = nested->simplify();
     REQUIRE(simplified == true_f);
 }
+
+TEST_CASE("Simplify OR: nested AND with complementary literals", "[simplify][or][nested]") {
+    SynthesisContext ctx;
+    Formula* a = ctx.parse_formula("a");
+    Formula* input = ctx.parse_formula("a | (c & !c)");
+
+    // Phase 1: collect {a, (c & !c)}
+    // Phase 2: (c & !c) simplifies to false, which is skipped
+    // Result: a
+    Formula* simplified = input->simplify();
+    REQUIRE(simplified == a);
+}
+
+TEST_CASE("Simplify OR: nested AND with False dominance", "[simplify][or][nested]") {
+    SynthesisContext ctx;
+    Formula* a = ctx.parse_formula("a");
+    Formula* input = ctx.parse_formula("a | (b & false)");
+
+    // Phase 1: collect {a, (b & false)}
+    // Phase 2: (b & false) simplifies to false, which is skipped
+    // Result: a
+    Formula* simplified = input->simplify();
+    REQUIRE(simplified == a);
+}
+
+TEST_CASE("Simplify OR: nested AND with True identity", "[simplify][or][nested]") {
+    SynthesisContext ctx;
+    Formula* expected = ctx.parse_formula("a | b");
+    Formula* input = ctx.parse_formula("a | (b & true)");
+
+    // Phase 1: collect {a, (b & true)}
+    // Phase 2: (b & true) simplifies to b
+    // Result: a | b
+    Formula* simplified = input->simplify();
+    REQUIRE(simplified == expected);
+}

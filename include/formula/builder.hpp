@@ -1,7 +1,10 @@
 #pragma once
 
+#include "formula.hpp"
 #include "operator.hpp"
+#include <set>
 #include <string>
+#include <unordered_set>
 
 namespace Cosy {
 
@@ -20,7 +23,31 @@ public:
     Formula* make_binary(Operator op, Formula* left, Formula* right);
 
 private:
+    // Hash consing support
+    struct FormulaHash {
+        size_t operator()(const Formula* f) const noexcept {
+            return f ? f->hash() : 0;
+        }
+    };
+
+    struct FormulaEqual {
+        bool operator()(const Formula* a, const Formula* b) const noexcept;
+    };
+
+    using UniqueTable = std::unordered_set<Formula*, FormulaHash, FormulaEqual>;
+
+    // Helper methods
+    static size_t compute_hash(Operator op, Formula* left, Formula* right, unsigned int var_id);
+    Formula* make_binary_raw(Operator op, Formula* left, Formula* right);
+
+    // Canonicalization helpers
+    static void collect_terms(Formula* f, std::set<Formula*>& terms, Operator op);
+    Formula* rebuild_chain(const std::set<Formula*>& terms, Operator op);
+
     SynthesisContext& context_;
+    UniqueTable unique_table_;
+    Formula* true_formula_ = nullptr;
+    Formula* false_formula_ = nullptr;
 };
 
 } // namespace Cosy

@@ -1,5 +1,6 @@
 #include "formula/synthesis_context.hpp"
 #include "formula/builder.hpp"
+#include "formula/formula.hpp"
 #include "formula/operator.hpp"
 
 namespace Cosy {
@@ -24,6 +25,12 @@ SymbolTable& SynthesisContext::symbols() {
 
 Formula* SynthesisContext::parse_formula(const std::string& str) {
     return formula_builder_->parse(str);
+}
+
+Formula* SynthesisContext::create_formula(Operator op, Formula* left, Formula* right, unsigned int var_id, size_t hash) {
+    Formula* formula = new Formula(op, left, right, var_id, hash, this);
+    formulas_.emplace_back(formula);
+    return formula;
 }
 
 } // namespace Cosy

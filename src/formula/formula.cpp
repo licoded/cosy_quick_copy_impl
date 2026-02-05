@@ -5,12 +5,12 @@
 
 namespace Cosy {
 
-Formula::Formula(Operator op, Formula* left, Formula* right, unsigned int var_id, SynthesisContext* context)
-    : context_(context), op_(op), left_(left), right_(right), var_id_(var_id) {}
+Formula::Formula(Operator op, Formula* left, Formula* right, unsigned int var_id, size_t hash, SynthesisContext* context)
+    : context_(context), op_(op), left_(left), right_(right), var_id_(var_id), hash_(hash) {}
 
 Formula::~Formula() {
-    delete left_;
-    delete right_;
+    // Note: left_ and right_ are not deleted here because all Formula objects
+    // are owned and managed by SynthesisContext
 }
 
 bool Formula::is_binary() const {

@@ -7,11 +7,11 @@ namespace Cosy {
 
 class FormulaBuilder;
 class FormulaStringifier;
+class SynthesisContext;
 
 class Formula {
 public:
     Formula() = delete;
-    Formula(const std::string& str);
     ~Formula();
 
     std::string toString() const;
@@ -21,8 +21,9 @@ private:
     friend class FormulaBuilder;
     friend class FormulaStringifier;
 
-    Formula(Operator op, Formula* left, Formula* right, unsigned int var_id = 0);
+    Formula(Operator op, Formula* left, Formula* right, unsigned int var_id, SynthesisContext* context);
 
+    SynthesisContext* context_;
     Operator op_ = Operator::Undefined;
     Formula* left_ = nullptr;
     Formula* right_ = nullptr;

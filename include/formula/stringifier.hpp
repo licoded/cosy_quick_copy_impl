@@ -5,10 +5,11 @@
 namespace Cosy {
 
 class Formula;
+class SymbolTable;
 
 class FormulaStringifier {
 public:
-    static std::string to_string(const Formula* formula);
+    static std::string to_string(const Formula* formula, SymbolTable& symbol_table);
 
 private:
     static std::string parenthesize_if_binary(const Formula* f);

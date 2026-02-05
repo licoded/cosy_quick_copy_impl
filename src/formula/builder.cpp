@@ -1,5 +1,6 @@
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
+#include "formula/synthesis_context.hpp"
 #include "ltlparser/trans.h"
 #include <stdexcept>
 
@@ -7,12 +8,11 @@ namespace Cosy {
 
 namespace {
     // Forward declaration
-    Formula* build_formula(const ltl_formula* ast);
+    Formula* build_formula(FormulaBuilder& builder, const ltl_formula* ast);
 }
 
-SymbolTable& FormulaBuilder::get_symbol_table() {
-    return get_global_symbol_table();
-}
+FormulaBuilder::FormulaBuilder(SynthesisContext& context)
+    : context_(context) {}
 
 Formula* FormulaBuilder::parse(const std::string& input) {
     if (input.empty()) {
@@ -22,84 +22,84 @@ Formula* FormulaBuilder::parse(const std::string& input) {
     if (ast == nullptr) {
         throw std::runtime_error("Failed to parse formula");
     }
-    Formula* formula = build_formula(ast);
+    Formula* formula = build_formula(*this, ast);
     destroy_formula(ast);
     return formula;
 }
 
 Formula* FormulaBuilder::make_true() {
-    return new Formula(Operator::True, nullptr, nullptr);
+    return new Formula(Operator::True, nullptr, nullptr, 0, &context_);
 }
 
 Formula* FormulaBuilder::make_false() {
-    return new Formula(Operator::False, nullptr, nullptr);
+    return new Formula(Operator::False, nullptr, nullptr, 0, &context_);
 }
 
 Formula* FormulaBuilder::make_literal(const std::string& var_name) {
-    unsigned int id = get_symbol_table().get_or_create_variable_id(var_name);
-    return new Formula(Operator::Literal, nullptr, nullptr, id);
+    unsigned int id = context_.symbols().get_or_create_variable_id(var_name);
+    return new Formula(Operator::Literal, nullptr, nullptr, id, &context_);
 }
 
 Formula* FormulaBuilder::make_unary(Operator op, Formula* sub_formula) {
     if (!is_unary_operator(op)) {
         throw std::invalid_argument("Invalid unary operator");
     }
-    return new Formula(op, nullptr, sub_formula);
+    return new Formula(op, nullptr, sub_formula, 0, &context_);
 }
 
 Formula* FormulaBuilder::make_binary(Operator op, Formula* left, Formula* right) {
     if (!is_binary_operator(op)) {
         throw std::invalid_argument("Invalid binary operator");
     }
-    return new Formula(op, left, right);
+    return new Formula(op, left, right, 0, &context_);
 }
 
 namespace {
 
-Formula* build_formula(const ltl_formula* ast) {
+Formula* build_formula(FormulaBuilder& builder, const ltl_formula* ast) {
     if (ast == nullptr) {
         throw std::invalid_argument("AST node cannot be null");
     }
 
-    Formula *left = ast->_left == nullptr ? nullptr : build_formula(ast->_left);
-    Formula *right = ast->_right == nullptr ? nullptr : build_formula(ast->_right);
+    Formula *left = ast->_left == nullptr ? nullptr : build_formula(builder, ast->_left);
+    Formula *right = ast->_right == nullptr ? nullptr : build_formula(builder, ast->_right);
 
     switch (ast->_type) {
         case eTRUE:
-            return FormulaBuilder::make_true();
+            return builder.make_true();
         case eFALSE:
-            return FormulaBuilder::make_false();
+            return builder.make_false();
         case eLITERAL:
-            return FormulaBuilder::make_literal(ast->_var);
+            return builder.make_literal(ast->_var);
         case eNOT:
-            return FormulaBuilder::make_unary(Operator::Not, right);
+            return builder.make_unary(Operator::Not, right);
         case eNEXT:
-            return FormulaBuilder::make_unary(Operator::Next, right);
+            return builder.make_unary(Operator::Next, right);
         case eWNEXT:
-            return FormulaBuilder::make_unary(Operator::WNext, right);
+            return builder.make_unary(Operator::WNext, right);
         case eGLOBALLY:
-            return FormulaBuilder::make_binary(Operator::Release, FormulaBuilder::make_false(), right);
+            return builder.make_binary(Operator::Release, builder.make_false(), right);
         case eFUTURE:
-            return FormulaBuilder::make_binary(Operator::Until, FormulaBuilder::make_true(), right);
+            return builder.make_binary(Operator::Until, builder.make_true(), right);
         case eUNTIL:
-            return FormulaBuilder::make_binary(Operator::Until, left, right);
+            return builder.make_binary(Operator::Until, left, right);
         case eRELEASE:
-            return FormulaBuilder::make_binary(Operator::Release, FormulaBuilder::make_false(), right);
+            return builder.make_binary(Operator::Release, builder.make_false(), right);
         case eAND:
-            return FormulaBuilder::make_binary(Operator::And, left, right);
+            return builder.make_binary(Operator::And, left, right);
         case eOR:
-            return FormulaBuilder::make_binary(Operator::Or, left, right);
+            return builder.make_binary(Operator::Or, left, right);
         case eIMPLIES: {
-            Formula* not_left = FormulaBuilder::make_unary(Operator::Not, left);
-            Formula* result = FormulaBuilder::make_binary(Operator::Or, not_left, right);
+            Formula* not_left = builder.make_unary(Operator::Not, left);
+            Formula* result = builder.make_binary(Operator::Or, not_left, right);
             return result;
         }
         case eEQUIV: {
-            Formula* not_left = FormulaBuilder::make_unary(Operator::Not, left);
-            Formula* not_right = FormulaBuilder::make_unary(Operator::Not, right);
-            Formula* left_implies_right = FormulaBuilder::make_binary(Operator::Or, not_left, right);
-            Formula* right_implies_left = FormulaBuilder::make_binary(Operator::Or, not_right, left);
-            Formula* result = FormulaBuilder::make_binary(Operator::And, left_implies_right, right_implies_left);
+            Formula* not_left = builder.make_unary(Operator::Not, left);
+            Formula* not_right = builder.make_unary(Operator::Not, right);
+            Formula* left_implies_right = builder.make_binary(Operator::Or, not_left, right);
+            Formula* right_implies_left = builder.make_binary(Operator::Or, not_right, left);
+            Formula* result = builder.make_binary(Operator::And, left_implies_right, right_implies_left);
             return result;
         }
         default:

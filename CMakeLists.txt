@@ -19,6 +19,7 @@ add_library(formula STATIC
     src/formula/operator.cpp
     src/formula/builder.cpp
     src/formula/stringifier.cpp
+    src/formula/synthesis_context.cpp
     deps/internal/ltlparser/ltl_formula.c
     deps/internal/ltlparser/ltllexer.c
     deps/internal/ltlparser/ltlparser.c

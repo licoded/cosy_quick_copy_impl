@@ -1,4 +1,5 @@
 #include "formula/formula.hpp"
+#include "formula/synthesis_context.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[]) {
@@ -8,8 +9,9 @@ int main(int argc, char *argv[]) {
     }
 
     try {
-        Cosy::Formula formula(argv[1]);
-        std::cout << "Parsed formula: " << formula.toString() << "\n";
+        Cosy::SynthesisContext ctx;
+        Cosy::Formula* formula = ctx.parse_formula(argv[1]);
+        std::cout << "Parsed formula: " << formula->toString() << "\n";
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return 1;

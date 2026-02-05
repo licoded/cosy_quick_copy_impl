@@ -6,18 +6,21 @@
 namespace Cosy {
 
 class Formula;
+class SynthesisContext;
 
 class FormulaBuilder {
 public:
-    static Formula* parse(const std::string& str);
-    static Formula* make_true();
-    static Formula* make_false();
-    static Formula* make_literal(const std::string& name);
-    static Formula* make_unary(Operator op, Formula* operand);
-    static Formula* make_binary(Operator op, Formula* left, Formula* right);
+    explicit FormulaBuilder(SynthesisContext& context);
+
+    Formula* parse(const std::string& str);
+    Formula* make_true();
+    Formula* make_false();
+    Formula* make_literal(const std::string& name);
+    Formula* make_unary(Operator op, Formula* operand);
+    Formula* make_binary(Operator op, Formula* left, Formula* right);
 
 private:
-    static SymbolTable& get_symbol_table();
+    SynthesisContext& context_;
 };
 
 } // namespace Cosy

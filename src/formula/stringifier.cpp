@@ -20,9 +20,7 @@ std::string FormulaStringifier::format_binary(const Formula* left, const std::st
     return left_str + " " + op + " " + right_str;
 }
 
-std::string FormulaStringifier::to_string(const Formula* formula) {
-    SymbolTable& symbol_table = get_global_symbol_table();
-
+std::string FormulaStringifier::to_string(const Formula* formula, SymbolTable& symbol_table) {
     // Atomic value (literal)
     if (formula->left_ == nullptr && formula->right_ == nullptr) {
         if (formula->op_ == Operator::Literal) {

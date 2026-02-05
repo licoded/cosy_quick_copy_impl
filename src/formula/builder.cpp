@@ -74,11 +74,8 @@ Formula* FormulaBuilder::make_false() {
 Formula* FormulaBuilder::make_literal(const std::string& var_name) {
     unsigned int id = context_.symbols().get_or_create_variable_id(var_name);
 
-    // Compute hash for lookup
-    size_t hash = FormulaHasher::compute(Operator::Literal, nullptr, nullptr, id);
-
-    // Create temporary key for lookup
-    Formula key(Operator::Literal, nullptr, nullptr, id, hash, &context_);
+    // Create temporary key for lookup (will compute hash automatically)
+    Formula key(Operator::Literal, nullptr, nullptr, id, &context_);
 
     // Search in unique table
     auto it = unique_table_.find(&key);
@@ -86,7 +83,7 @@ Formula* FormulaBuilder::make_literal(const std::string& var_name) {
         return *it; // Found existing
     }
 
-    // Not found, create new (will compute hash automatically)
+    // Not found, create new
     Formula* new_formula = context_.create_formula(Operator::Literal, nullptr, nullptr, id);
     unique_table_.insert(new_formula);
     return new_formula;
@@ -97,11 +94,8 @@ Formula* FormulaBuilder::make_unary(Operator op, Formula* sub_formula) {
         throw std::invalid_argument("Invalid unary operator");
     }
 
-    // Compute hash for lookup
-    size_t hash = FormulaHasher::compute(op, nullptr, sub_formula, 0);
-
-    // Create temporary key for lookup
-    Formula key(op, nullptr, sub_formula, 0, hash, &context_);
+    // Create temporary key for lookup (will compute hash automatically)
+    Formula key(op, nullptr, sub_formula, 0, &context_);
 
     // Search in unique table
     auto it = unique_table_.find(&key);
@@ -109,7 +103,7 @@ Formula* FormulaBuilder::make_unary(Operator op, Formula* sub_formula) {
         return *it; // Found existing
     }
 
-    // Not found, create new (will compute hash automatically)
+    // Not found, create new
     Formula* new_formula = context_.create_formula(op, nullptr, sub_formula, 0);
     unique_table_.insert(new_formula);
     return new_formula;
@@ -120,9 +114,8 @@ Formula* FormulaBuilder::make_binary(Operator op, Formula* left, Formula* right)
         throw std::invalid_argument("Invalid binary operator");
     }
 
-    // Pure hash consing: only check for structural equality
-    size_t hash = FormulaHasher::compute(op, left, right, 0);
-    Formula key(op, left, right, 0, hash, &context_);
+    // Create temporary key for lookup (will compute hash automatically)
+    Formula key(op, left, right, 0, &context_);
 
     auto it = unique_table_.find(&key);
     if (it != unique_table_.end()) {

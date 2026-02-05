@@ -12,10 +12,6 @@ Formula::Formula(Operator op, Formula* left, Formula* right, unsigned int var_id
     hash_ = FormulaHasher::compute(op_, left_, right_, var_id_);
 }
 
-// Private constructor for temporary keys (does not compute hash)
-Formula::Formula(Operator op, Formula* left, Formula* right, unsigned int var_id, size_t hash, SynthesisContext* context)
-    : context_(context), op_(op), left_(left), right_(right), var_id_(var_id), hash_(hash) {}
-
 Formula::~Formula() {
     // Note: left_ and right_ are not deleted here because all Formula objects
     // are owned and managed by SynthesisContext

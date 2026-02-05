@@ -54,6 +54,37 @@ TEST_CASE("Simplify Until: a U a → a", "[simplify][until]") {
     REQUIRE(simplified == a);
 }
 
+TEST_CASE("Simplify Until: a U (a | b) → a | b", "[simplify][until]") {
+    SynthesisContext ctx;
+    Formula* a_or_b = ctx.parse_formula("a | b");
+    Formula* nested = ctx.parse_formula("a U (a | b)");
+
+    Formula* simplified = nested->simplify();
+    REQUIRE(simplified == a_or_b);
+}
+
+TEST_CASE("Simplify Until: a U (a U b) → a U b", "[simplify][until]") {
+    SynthesisContext ctx;
+    Formula* a = ctx.parse_formula("a");
+    Formula* b = ctx.parse_formula("b");
+    Formula* expected = ctx.parse_formula("a U b");
+    Formula* nested = ctx.parse_formula("a U (a U b)");
+
+    Formula* simplified = nested->simplify();
+    REQUIRE(simplified == expected);
+}
+
+TEST_CASE("Simplify Until: a U (b U a) → b U a", "[simplify][until]") {
+    SynthesisContext ctx;
+    Formula* a = ctx.parse_formula("a");
+    Formula* b = ctx.parse_formula("b");
+    Formula* expected = ctx.parse_formula("b U a");
+    Formula* nested = ctx.parse_formula("a U (b U a)");
+
+    Formula* simplified = nested->simplify();
+    REQUIRE(simplified == expected);
+}
+
 TEST_CASE("Simplify Until: nested (false U a) U b → a U b", "[simplify][until]") {
     SynthesisContext ctx;
     Formula* a = ctx.parse_formula("a");

@@ -1,6 +1,6 @@
-#include "formula/simplify/formula_simplifier.hpp"
-#include "formula/simplify/and_simplifier.hpp"
-#include "formula/simplify/or_simplifier.hpp"
+#include "formula/simplify/simplifier.hpp"
+#include "formula/simplify/and.hpp"
+#include "formula/simplify/or.hpp"
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
 

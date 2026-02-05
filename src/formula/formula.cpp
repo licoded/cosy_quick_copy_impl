@@ -2,7 +2,7 @@
 #include "formula/builder.hpp"
 #include "formula/stringifier.hpp"
 #include "formula/synthesis_context.hpp"
-#include "formula/simplify/formula_simplifier.hpp"
+#include "formula/simplify/simplifier.hpp"
 
 namespace Cosy {
 

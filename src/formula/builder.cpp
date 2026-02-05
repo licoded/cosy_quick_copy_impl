@@ -15,7 +15,6 @@ SymbolTable& FormulaBuilder::get_symbol_table() {
 }
 
 Formula* FormulaBuilder::parse(const std::string& input) {
-    get_symbol_table().initialize_operators();
     if (input.empty()) {
         throw std::invalid_argument("Input formula cannot be empty");
     }

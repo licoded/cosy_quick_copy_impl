@@ -48,7 +48,7 @@ std::string Formula::toString() const {
         if (op_ == Operator::Literal) {
             return symbol_table.get_name(var_id_);
         }
-        return symbol_table.get_name(static_cast<int>(op_));
+        return symbol_table.get_op_str(op_);
     }
 
     // Error: invalid state
@@ -56,7 +56,7 @@ std::string Formula::toString() const {
         throw std::runtime_error("Invalid formula: binary operator without right operand");
     }
 
-    const std::string& op_str = symbol_table.get_name(static_cast<int>(op_));
+    const std::string& op_str = symbol_table.get_op_str(op_);
 
     // Unary prefix operators: Not, Next, WNext
     if (!is_binary()) {

@@ -40,9 +40,9 @@ bool is_binary_operator(Operator op);
 
 class SymbolTable {
 public:
-    void initialize_operators();
     unsigned int get_or_create_variable_id(const std::string& var_name);
     const std::string& get_name(unsigned int id) const;
+    static const char *get_op_str(Operator op);
 
 private:
     std::vector<std::string> names_;

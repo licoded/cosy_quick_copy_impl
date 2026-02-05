@@ -38,20 +38,10 @@ SymbolTable& get_global_symbol_table() {
     return global_symbol_table;
 }
 
-void SymbolTable::initialize_operators() {
-    if (names_.empty()) {
-        // Automatically populate from operator info table
-        for (int i = 0; i <= static_cast<int>(Operator::Undefined); ++i) {
-            const OperatorInfo& info = get_operator_info(static_cast<Operator>(i));
-            names_.push_back(info.name);
-        }
-    }
-}
-
 unsigned int SymbolTable::get_or_create_variable_id(const std::string& var_name) {
     auto it = ids_.find(var_name);
     if (it == ids_.end()) {
-        unsigned int id = names_.size();
+        unsigned int id = names_.size() + 1;
         ids_[var_name] = id;
         names_.push_back(var_name);
         return id;
@@ -61,10 +51,14 @@ unsigned int SymbolTable::get_or_create_variable_id(const std::string& var_name)
 }
 
 const std::string& SymbolTable::get_name(unsigned int id) const {
-    if (id >= names_.size()) {
+    if (id > names_.size()) {
         throw std::out_of_range("Invalid symbol ID");
     }
-    return names_[id];
+    return names_[id - 1];
+}
+
+const char *SymbolTable::get_op_str(Operator op) {
+    return get_operator_info(op).name;
 }
 
 } // namespace Cosy

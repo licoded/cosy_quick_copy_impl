@@ -2,6 +2,7 @@
 #include "formula/simplify/and.hpp"
 #include "formula/simplify/or.hpp"
 #include "formula/simplify/next.hpp"
+#include "formula/simplify/wnext.hpp"
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
 
@@ -23,8 +24,11 @@ Formula* FormulaSimplifier::simplify(Formula* formula, FormulaBuilder& builder) 
         if (op == Operator::Next) {
             return NextSimplifier::simplify(formula, builder);
         }
+        if (op == Operator::WNext) {
+            return WNextSimplifier::simplify(formula, builder);
+        }
 
-        // For other unary operators (Not, WNext), recursively simplify child
+        // For other unary operators (Not), recursively simplify child
         Formula* right = formula->right() ? simplify(formula->right(), builder) : nullptr;
         return builder.make_unary(op, right);
     }

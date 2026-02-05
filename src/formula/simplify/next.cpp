@@ -5,8 +5,9 @@
 
 namespace Cosy {
 
-Formula* NextSimplifier::simplify(Formula* operand, FormulaBuilder& builder) {
-    // First simplify the operand
+Formula* NextSimplifier::simplify(Formula* formula, FormulaBuilder& builder) {
+    // Extract operand and simplify it
+    Formula* operand = formula->right();
     Formula* simplified_operand = FormulaSimplifier::simplify(operand, builder);
 
     // Rule 1: X[!] False → False

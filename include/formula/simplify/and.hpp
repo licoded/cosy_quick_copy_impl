@@ -29,12 +29,11 @@ public:
     /**
      * @brief Simplify an AND formula
      *
-     * @param left Left operand (not yet simplified)
-     * @param right Right operand (not yet simplified)
+     * @param formula The AND formula to simplify
      * @param builder The formula builder for creating new formulas
      * @return Simplified formula
      */
-    static Formula* simplify(Formula* left, Formula* right, FormulaBuilder& builder);
+    static Formula* simplify(Formula* formula, FormulaBuilder& builder);
 };
 
 } // namespace Cosy

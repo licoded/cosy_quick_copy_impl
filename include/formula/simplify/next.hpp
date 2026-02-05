@@ -19,11 +19,11 @@ public:
     /**
      * @brief Simplify a Next formula
      *
-     * @param operand The operand of Next (not yet simplified)
+     * @param formula The Next formula to simplify
      * @param builder FormulaBuilder for creating formulas
-     * @return Simplified formula, or nullptr if no change
+     * @return Simplified formula
      */
-    static Formula* simplify(Formula* operand, FormulaBuilder& builder);
+    static Formula* simplify(Formula* formula, FormulaBuilder& builder);
 };
 
 } // namespace Cosy

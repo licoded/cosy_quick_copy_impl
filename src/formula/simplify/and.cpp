@@ -7,12 +7,11 @@
 
 namespace Cosy {
 
-Formula* AndSimplifier::simplify(Formula* left, Formula* right, FormulaBuilder& builder) {
+Formula* AndSimplifier::simplify(Formula* formula, FormulaBuilder& builder) {
     std::set<Formula*> terms;
 
     // Phase 1: Initial collection (flatten nested AND from original tree)
-    SimplifyUtil::collect_binary_terms(left, terms, Operator::And);
-    SimplifyUtil::collect_binary_terms(right, terms, Operator::And);
+    SimplifyUtil::collect_binary_terms(formula, terms, Operator::And);
 
     // Check for False (dominance: False & anything → False)
     Formula* false_f = builder.make_false();
@@ -27,8 +26,7 @@ Formula* AndSimplifier::simplify(Formula* left, Formula* right, FormulaBuilder& 
 
         // If simplification produced an AND, expand it
         if (simplified->op() == Operator::And) {
-            SimplifyUtil::collect_binary_terms(simplified->left(), new_terms, Operator::And);
-            SimplifyUtil::collect_binary_terms(simplified->right(), new_terms, Operator::And);
+            SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::And);
         } else if (simplified->op() != Operator::True) {
             // Skip True (identity for AND)
             new_terms.insert(simplified);

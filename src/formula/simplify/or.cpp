@@ -7,12 +7,11 @@
 
 namespace Cosy {
 
-Formula* OrSimplifier::simplify(Formula* left, Formula* right, FormulaBuilder& builder) {
+Formula* OrSimplifier::simplify(Formula* formula, FormulaBuilder& builder) {
     std::set<Formula*> terms;
 
     // Phase 1: Initial collection (flatten nested OR from original tree)
-    SimplifyUtil::collect_binary_terms(left, terms, Operator::Or);
-    SimplifyUtil::collect_binary_terms(right, terms, Operator::Or);
+    SimplifyUtil::collect_binary_terms(formula, terms, Operator::Or);
 
     // Check for True (dominance: True | anything → True)
     Formula* true_f = builder.make_true();
@@ -27,8 +26,7 @@ Formula* OrSimplifier::simplify(Formula* left, Formula* right, FormulaBuilder& b
 
         // If simplification produced an OR, expand it
         if (simplified->op() == Operator::Or) {
-            SimplifyUtil::collect_binary_terms(simplified->left(), new_terms, Operator::Or);
-            SimplifyUtil::collect_binary_terms(simplified->right(), new_terms, Operator::Or);
+            SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::Or);
         } else if (simplified->op() != Operator::False) {
             // Skip False (identity for OR)
             new_terms.insert(simplified);

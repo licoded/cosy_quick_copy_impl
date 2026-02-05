@@ -1,6 +1,7 @@
 #include "formula/simplify/simplifier.hpp"
 #include "formula/simplify/and.hpp"
 #include "formula/simplify/or.hpp"
+#include "formula/simplify/next.hpp"
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
 
@@ -18,10 +19,13 @@ Formula* FormulaSimplifier::simplify(Formula* formula, FormulaBuilder& builder) 
 
     // Handle unary operators
     if (!formula->is_binary()) {
-        // Recursively simplify child first
+        // Delegate to operator-specific simplifiers
+        if (op == Operator::Next) {
+            return NextSimplifier::simplify(formula->right(), builder);
+        }
+
+        // For other unary operators (Not, WNext), recursively simplify child
         Formula* right = formula->right() ? simplify(formula->right(), builder) : nullptr;
-        // For unary operators, just rebuild with simplified child
-        // TODO: Add operator-specific simplification for Next, etc.
         return builder.make_unary(op, right);
     }
 

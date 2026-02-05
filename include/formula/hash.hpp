@@ -23,15 +23,10 @@ inline void hash_combine(size_t& seed, size_t value) {
  * @brief Hash computation for Formula objects
  *
  * This class is responsible for computing hash values for Formula objects.
- * It is a friend of Formula to allow for potential future optimizations
- * that may require access to Formula internals.
- *
  * The hash computation can be easily replaced by modifying the implementation
  * in hash.cpp without affecting the rest of the codebase.
  */
 class FormulaHasher {
-    friend class Formula;
-
 public:
     /**
      * @brief Compute hash value for a formula

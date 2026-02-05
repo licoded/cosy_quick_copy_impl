@@ -6,6 +6,7 @@
 namespace Cosy {
 
 class FormulaBuilder;
+class FormulaStringifier;
 
 class Formula {
 public:
@@ -18,6 +19,7 @@ public:
 
 private:
     friend class FormulaBuilder;
+    friend class FormulaStringifier;
 
     Formula(Operator op, Formula* left, Formula* right, unsigned int var_id = 0);
 

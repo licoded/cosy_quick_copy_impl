@@ -4,6 +4,7 @@
 #include "formula/simplify/next.hpp"
 #include "formula/simplify/wnext.hpp"
 #include "formula/simplify/until.hpp"
+#include "formula/simplify/release.hpp"
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
 
@@ -42,13 +43,14 @@ Formula* FormulaSimplifier::simplify(Formula* formula, FormulaBuilder& builder) 
         return OrSimplifier::simplify(formula, builder);
     } else if (op == Operator::Until) {
         return UntilSimplifier::simplify(formula, builder);
+    } else if (op == Operator::Release) {
+        return ReleaseSimplifier::simplify(formula, builder);
     }
 
-    // For other binary operators (Release), recursively simplify children first
+    // For remaining binary operators, recursively simplify children first
     Formula* left = formula->left() ? simplify(formula->left(), builder) : nullptr;
     Formula* right = formula->right() ? simplify(formula->right(), builder) : nullptr;
 
-    // TODO: Add simplification rules for Release
     return builder.make_binary(op, left, right);
 }
 

@@ -43,3 +43,49 @@ TEST_CASE("Simplify OR: dominance with True", "[simplify][or]") {
     Formula* simplified = a_or_true->simplify();
     REQUIRE(simplified == true_f);
 }
+
+TEST_CASE("Simplify OR: complementary literals (a | !a)", "[simplify][or][phase3]") {
+    SynthesisContext ctx;
+    Formula* true_f = ctx.parse_formula("true");
+    Formula* a_or_not_a = ctx.parse_formula("a | !a");
+
+    // Before simplify, they are different
+    REQUIRE(a_or_not_a != true_f);
+
+    // After simplify, complementary literals detected: a | !a → true
+    Formula* simplified = a_or_not_a->simplify();
+    REQUIRE(simplified == true_f);
+}
+
+TEST_CASE("Simplify OR: complementary literals (!a | a)", "[simplify][or][phase3]") {
+    SynthesisContext ctx;
+    Formula* true_f = ctx.parse_formula("true");
+    Formula* not_a_or_a = ctx.parse_formula("!a | a");
+
+    // Before simplify, they are different
+    REQUIRE(not_a_or_a != true_f);
+
+    // After simplify, complementary literals detected: !a | a → true
+    Formula* simplified = not_a_or_a->simplify();
+    REQUIRE(simplified == true_f);
+}
+
+TEST_CASE("Simplify OR: complementary literals with multiple terms", "[simplify][or][phase3]") {
+    SynthesisContext ctx;
+    Formula* true_f = ctx.parse_formula("true");
+    Formula* abc_not_a = ctx.parse_formula("a | b | !a");
+
+    // After simplify, complementary literals detected: a | b | !a → true
+    Formula* simplified = abc_not_a->simplify();
+    REQUIRE(simplified == true_f);
+}
+
+TEST_CASE("Simplify OR: complementary literals in nested structure", "[simplify][or][phase3]") {
+    SynthesisContext ctx;
+    Formula* true_f = ctx.parse_formula("true");
+    Formula* nested = ctx.parse_formula("(a | b) | !a");
+
+    // After simplify with flattening, complementary literals detected: (a | b) | !a → true
+    Formula* simplified = nested->simplify();
+    REQUIRE(simplified == true_f);
+}

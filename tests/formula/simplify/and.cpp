@@ -57,3 +57,49 @@ TEST_CASE("Simplify AND: dominance with False", "[simplify][and]") {
     Formula* simplified = a_and_false->simplify();
     REQUIRE(simplified == false_f);
 }
+
+TEST_CASE("Simplify AND: complementary literals (a & !a)", "[simplify][and][phase3]") {
+    SynthesisContext ctx;
+    Formula* false_f = ctx.parse_formula("false");
+    Formula* a_and_not_a = ctx.parse_formula("a & !a");
+
+    // Before simplify, they are different
+    REQUIRE(a_and_not_a != false_f);
+
+    // After simplify, complementary literals detected: a & !a → false
+    Formula* simplified = a_and_not_a->simplify();
+    REQUIRE(simplified == false_f);
+}
+
+TEST_CASE("Simplify AND: complementary literals (!a & a)", "[simplify][and][phase3]") {
+    SynthesisContext ctx;
+    Formula* false_f = ctx.parse_formula("false");
+    Formula* not_a_and_a = ctx.parse_formula("!a & a");
+
+    // Before simplify, they are different
+    REQUIRE(not_a_and_a != false_f);
+
+    // After simplify, complementary literals detected: !a & a → false
+    Formula* simplified = not_a_and_a->simplify();
+    REQUIRE(simplified == false_f);
+}
+
+TEST_CASE("Simplify AND: complementary literals with multiple terms", "[simplify][and][phase3]") {
+    SynthesisContext ctx;
+    Formula* false_f = ctx.parse_formula("false");
+    Formula* abc_not_a = ctx.parse_formula("a & b & !a");
+
+    // After simplify, complementary literals detected: a & b & !a → false
+    Formula* simplified = abc_not_a->simplify();
+    REQUIRE(simplified == false_f);
+}
+
+TEST_CASE("Simplify AND: complementary literals in nested structure", "[simplify][and][phase3]") {
+    SynthesisContext ctx;
+    Formula* false_f = ctx.parse_formula("false");
+    Formula* nested = ctx.parse_formula("(a & b) & !a");
+
+    // After simplify with flattening, complementary literals detected: (a & b) & !a → false
+    Formula* simplified = nested->simplify();
+    REQUIRE(simplified == false_f);
+}

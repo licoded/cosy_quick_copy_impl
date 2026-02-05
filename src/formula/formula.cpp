@@ -46,7 +46,7 @@ std::string Formula::toString() const {
     // Atomic value (literal)
     if (left_ == nullptr && right_ == nullptr) {
         if (op_ == Operator::Literal) {
-            return symbol_table.get_name(var_id_);
+            return symbol_table.get_var_name(var_id_);
         }
         return symbol_table.get_op_str(op_);
     }

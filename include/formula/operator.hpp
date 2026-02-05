@@ -41,7 +41,7 @@ bool is_binary_operator(Operator op);
 class SymbolTable {
 public:
     unsigned int get_or_create_variable_id(const std::string& var_name);
-    const std::string& get_name(unsigned int id) const;
+    const std::string& get_var_name(unsigned int id) const;
     static const char *get_op_str(Operator op);
 
 private:

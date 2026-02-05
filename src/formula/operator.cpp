@@ -50,7 +50,7 @@ unsigned int SymbolTable::get_or_create_variable_id(const std::string& var_name)
     }
 }
 
-const std::string& SymbolTable::get_name(unsigned int id) const {
+const std::string& SymbolTable::get_var_name(unsigned int id) const {
     if (id > names_.size()) {
         throw std::out_of_range("Invalid symbol ID");
     }

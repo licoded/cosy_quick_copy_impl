@@ -20,6 +20,7 @@ add_library(formula STATIC
     src/formula/builder.cpp
     src/formula/stringifier.cpp
     src/formula/synthesis_context.cpp
+    src/formula/simplify/util.cpp
     src/formula/simplify/and_simplifier.cpp
     src/formula/simplify/or_simplifier.cpp
     src/formula/simplify/formula_simplifier.cpp

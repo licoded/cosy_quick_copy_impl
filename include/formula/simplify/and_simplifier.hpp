@@ -1,7 +1,5 @@
 #pragma once
 
-#include <set>
-
 namespace Cosy {
 
 class Formula;
@@ -9,6 +7,13 @@ class FormulaBuilder;
 
 /**
  * @brief Simplifier for AND operations
+ *
+ * Process:
+ * 1. Collect terms from both sides (flatten nested AND)
+ * 2. Simplify each term recursively
+ * 3. If simplification produces new AND, expand and re-collect
+ * 4. Check for conflicts (a & !a) - TODO
+ * 5. Rebuild flattened chain
  *
  * Applies the following transformations:
  * - Flattening: (a & (b & c)) → {a, b, c}
@@ -24,28 +29,12 @@ public:
     /**
      * @brief Simplify an AND formula
      *
-     * @param formula The formula to simplify (must have op() == Operator::And)
+     * @param left Left operand (not yet simplified)
+     * @param right Right operand (not yet simplified)
      * @param builder The formula builder for creating new formulas
      * @return Simplified formula
      */
-    static Formula* simplify(Formula* formula, FormulaBuilder& builder);
-
-private:
-    /**
-     * @brief Collect AND terms into a set (flatten chains)
-     *
-     * Flattens nested AND structures recursively: `(a & (b & c))` → `{a, b, c}`
-     * Uses std::set for deterministic ordering (crucial for hash consing)
-     */
-    static void collect_terms(Formula* f, std::set<Formula*>& terms);
-
-    /**
-     * @brief Rebuild an AND chain from a set of terms
-     *
-     * Builds right-leaning chain: {a, b, c} → a & (b & c)
-     * Deterministic ordering from std::set ensures consistent hash consing
-     */
-    static Formula* rebuild_chain(FormulaBuilder& builder, const std::set<Formula*>& terms);
+    static Formula* simplify(Formula* left, Formula* right, FormulaBuilder& builder);
 };
 
 } // namespace Cosy

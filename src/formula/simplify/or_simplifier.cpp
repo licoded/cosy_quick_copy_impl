@@ -1,69 +1,49 @@
 #include "formula/simplify/or_simplifier.hpp"
+#include "formula/simplify/formula_simplifier.hpp"
+#include "formula/simplify/util.hpp"
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
+#include <set>
 
 namespace Cosy {
 
-void OrSimplifier::collect_terms(Formula* f, std::set<Formula*>& terms) {
-    if (!f) return;
-
-    if (f->op() == Operator::Or) {
-        // Flatten chain: collect both sides
-        collect_terms(f->left(), terms);
-        collect_terms(f->right(), terms);
-    } else {
-        // Leaf term
-        terms.insert(f);
-    }
-}
-
-Formula* OrSimplifier::rebuild_chain(FormulaBuilder& builder, const std::set<Formula*>& terms) {
-    if (terms.empty()) {
-        // Identity element for OR is False
-        return builder.make_false();
-    }
-
-    if (terms.size() == 1) {
-        return *terms.begin();
-    }
-
-    // Build right-leaning chain
-    auto it = terms.begin();
-    Formula* result = *it;
-    ++it;
-
-    for (; it != terms.end(); ++it) {
-        result = builder.make_binary(Operator::Or, result, *it);
-    }
-
-    return result;
-}
-
-Formula* OrSimplifier::simplify(Formula* formula, FormulaBuilder& builder) {
-    if (!formula || formula->op() != Operator::Or) {
-        return formula;
-    }
-
+Formula* OrSimplifier::simplify(Formula* left, Formula* right, FormulaBuilder& builder) {
     std::set<Formula*> terms;
 
-    // Phase 1: Flatten nested structures
-    collect_terms(formula, terms);
+    // Phase 1: Initial collection (flatten nested OR from original tree)
+    SimplifyUtil::collect_binary_terms(left, terms, Operator::Or);
+    SimplifyUtil::collect_binary_terms(right, terms, Operator::Or);
 
-    // Phase 2: Apply simplification rules
     // Check for True (dominance: True | anything → True)
     Formula* true_f = builder.make_true();
     if (terms.find(true_f) != terms.end()) {
         return true_f;
     }
 
-    // Remove False (identity: False | x → x)
-    Formula* false_f = builder.make_false();
-    terms.erase(false_f);
+    // Phase 2: Simplify each term and expand any new OR formulas
+    std::set<Formula*> new_terms;
+    for (Formula* f : terms) {
+        Formula* simplified = FormulaSimplifier::simplify(f, builder);
 
-    // TODO: Check for complementary literals (a | !a → True)
+        // If simplification produced an OR, expand it
+        if (simplified->op() == Operator::Or) {
+            SimplifyUtil::collect_binary_terms(simplified->left(), new_terms, Operator::Or);
+            SimplifyUtil::collect_binary_terms(simplified->right(), new_terms, Operator::Or);
+        } else if (simplified->op() != Operator::False) {
+            // Skip False (identity for OR)
+            new_terms.insert(simplified);
+        }
+    }
 
-    // Phase 3: Rebuild canonicalized chain
-    return rebuild_chain(builder, terms);
+    // Check for True again after simplification
+    if (new_terms.find(true_f) != new_terms.end()) {
+        return true_f;
+    }
+
+    // TODO: Phase 3: Check for tautologies (a | !a)
+
+    // Rebuild chain from deduplicated terms
+    return SimplifyUtil::rebuild_chain(builder, new_terms, Operator::Or);
 }
 
 } // namespace Cosy

@@ -91,6 +91,20 @@ TEST_CASE("HashConsing: OR associativity", "[hash_consing][canonicalization]") {
     REQUIRE(abc1_simplified == abc2_simplified);
 }
 
+TEST_CASE("HashConsing: AND commutativity with nested structure", "[hash_consing][canonicalization]") {
+    SynthesisContext ctx;
+    Formula* abc1 = ctx.parse_formula("(a & b) & c");
+    Formula* abc2 = ctx.parse_formula("c & (b & a)");
+
+    // With commutativity optimization, nested structures may be canonicalized
+    REQUIRE(abc1 == abc2);
+
+    // After simplify with flattening, both should be canonicalized to the same form
+    Formula* abc1_simplified = abc1->simplify();
+    Formula* abc2_simplified = abc2->simplify();
+    REQUIRE(abc1_simplified == abc2_simplified);
+}
+
 TEST_CASE("HashConsing: AND with True (identity)", "[hash_consing][simplification]") {
     SynthesisContext ctx;
     Formula* a = ctx.parse_formula("a");

@@ -55,15 +55,14 @@ cmake --build build --target test -- ARGS="-V"  # Run all tests with verbose out
 ctest --test-dir build --output-on-failure
 ```
 
-# Build Directory Policy
+## Build Directory Policy
 
-- ALWAYS perform builds using out-of-source build directory (`build/`)
-- Use `cmake -S . -B build` to configure without changing directories
-- Use `cmake --build build` to build without changing directories
-- NEVER run `cmake .` or `make` in the project root directory
-- NEVER run builds in any subdirectories of the project (like `tests/`)
-- If temporary builds are needed elsewhere, use `/tmp` or similar external temporary directories
-- Clean up temporary build directories after use
+- Mandate out-of-source builds: All build artifacts must be isolated in a dedicated directory (typically named `build/`)
+- Prohibit in-source builds: Never run `cmake .` or `make` in the project root to avoid polluting the source tree
+- Do not invoke builds from source subdirectories: Avoid running build commands within directories containing source code (e.g., `src/`, `tests/`)
+- Use `cmake -S . -B build` to configure from project root into dedicated build directory
+- Use `cmake --build build` to build from project root without changing directories
+- Clean up temporary build directories after use if created in other locations
 - The `build/` directory is already in `.gitignore` and is the designated location for all build artifacts
 - Testing artifacts and temporary files (including Testing/Temporary/) will be placed in build directory, not in source directories
 

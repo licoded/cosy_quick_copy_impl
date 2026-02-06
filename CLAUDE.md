@@ -48,10 +48,11 @@ cmake --build build --target all -j  # Build all targets with parallel jobs
 cmake --build build --target formula_cli -j
 
 # Run all tests
-cmake --build build --target test -- -V  # Run tests with verbose output
+cmake --build build --target test
+cmake --build build --target test -- ARGS="-V"  # Run all tests with verbose output
 
 # Alternative test command
-cd build && ctest --output-on-failure
+ctest --test-dir build --output-on-failure
 ```
 
 # Build Directory Policy
@@ -77,10 +78,11 @@ Tests are organized in the `tests/` directory using Catch2 framework:
 Test executables are built in the `build/` directory:
 ```bash
 # Build and run all tests (recommended)
-cmake --build build --target test -- -V
+cmake --build build --target test
+cmake --build build --target test -- ARGS="-V" # if need verbose output
 
 # Alternative: Run specific test using ctest
-cd build && ctest -R formula_visitor_test
+ctest --test-dir build -R formula_visitor_test
 
 # Direct execution of test executable
 ./build/tests/formula_visitor_test

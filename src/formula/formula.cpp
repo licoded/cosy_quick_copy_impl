@@ -4,6 +4,8 @@
 #include "formula/synthesis_context.hpp"
 #include "formula/simplify/simplifier.hpp"
 #include "formula/hash.hpp"
+#include "formula/visitor.hpp"
+#include "formula/simplification_visitor.hpp"
 
 namespace Cosy {
 
@@ -27,6 +29,10 @@ std::string Formula::toString() const {
 
 Formula* Formula::simplify() {
     return FormulaSimplifier::simplify(this, context_->formula_builder());
+}
+
+void Formula::accept(Visitor& visitor) const {
+    visitor.visit(const_cast<Formula*>(this));
 }
 
 } // namespace Cosy

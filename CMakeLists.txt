@@ -28,6 +28,7 @@ add_library(formula STATIC
     src/formula/simplify/wnext.cpp
     src/formula/simplify/until.cpp
     src/formula/simplify/release.cpp
+    src/formula/simplification_visitor.cpp
     src/formula/simplify/simplifier.cpp
     deps/internal/ltlparser/ltl_formula.c
     deps/internal/ltlparser/ltllexer.c

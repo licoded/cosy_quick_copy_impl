@@ -9,6 +9,7 @@ class FormulaBuilder;
 class FormulaStringifier;
 class SynthesisContext;
 class FormulaHasher;
+class Visitor;
 
 class Formula {
 public:
@@ -19,6 +20,9 @@ public:
     bool is_binary() const;
     size_t hash() const { return hash_; }
     Formula* simplify();
+
+    // 访问者模式支持
+    void accept(Visitor& visitor) const;
 
     // Accessors for canonicalization
     Operator op() const { return op_; }

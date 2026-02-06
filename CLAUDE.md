@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a C++ implementation of a logical formula library with focus on Linear Temporal Logic (LTL) operations. The project includes a formula parser, simplification engine, and visitor pattern implementation for formula manipulation.
+This project provides a high-performance C++17 implementation of Linear Temporal Logic on finite traces (LTLf) synthesis. It is designed as a robust framework for LTLf operations, encompassing everything from formula manipulation to game-based synthesis solving.
+
+## Core Features
+
+- Immutable Formula Representation (Hash Consing): Ensures formula uniqueness and enables $O(1)$ equality checks through structural hashing.
+- Comprehensive Formula Manipulation: Supports parsing, simplification, and transformation of temporal logic formulas with rich operator support.
+- Extensive Test Coverage: Includes a comprehensive suite of tests to ensure the reliability and correctness of the formula operations.
 
 ## Architecture
 
@@ -109,7 +115,6 @@ ctest --test-dir build -R formula_visitor_test
 ```
 
 ### 规则
-
 - **type**: 必需。表示提交的类型。
   - `feat`: 新功能
   - `fix`: 修复 bug
@@ -125,15 +130,11 @@ ctest --test-dir build -R formula_visitor_test
   - `chore`: 杂项 (如依赖更新)
   - `types`: 类型定义相关
   - `wip`: 工作进行中
-
 - **scope**: 可选。中英文都可以，表示影响的模块，如 `formula`, `parser`, `git`, `CMake` 等。
-
 - **description**: 必需。中文 + 英文专有名词/术语，描述变更内容，长度 1-50 字符。
-
 - **revert**: 可选，用于撤销之前的提交。
 
 ### 示例
-
 - `feat(formula): 实现 Formula 类的 to_string 方法`
 - `fix(parser): 修复 unary 运算符解析优先级`
 - `docs: 更新 README.md`

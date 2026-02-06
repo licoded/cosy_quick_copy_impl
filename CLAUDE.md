@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+IMPORTANT: When making git commits, DO NOT add "Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>" line to commit messages.
+
 ## Project Overview
 
 This project provides a high-performance C++17 implementation of Linear Temporal Logic on finite traces (LTLf) synthesis. It is designed as a robust framework for LTLf operations, encompassing everything from formula manipulation to game-based synthesis solving.

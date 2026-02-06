@@ -37,26 +37,28 @@ The project uses CMake with the following targets:
 ## Build Commands
 
 ```bash
-# Proper build process - ALWAYS use build directory
-mkdir -p build && cd build
-cmake ..
-make
+# Recommended: Complete rebuild without changing directories
+rm -rf build && cmake -S . -B build && cmake --build build --target all -j
 
-# Alternative (also in build directory)
-cd build
-cmake ..
-make
+# Alternative: Configure and build without changing directories
+cmake -S . -B build  # Configure
+cmake --build build --target all -j  # Build all targets with parallel jobs
+
+# Build specific target
+cmake --build build --target formula_cli -j
 
 # Run all tests
-cd build && ctest --output-on-failure
+cmake --build build --target test -- -V  # Run tests with verbose output
 
-# Run specific test
-cd build && ctest -R formula_visitor_test
+# Alternative test command
+cd build && ctest --output-on-failure
 ```
 
-## Build Directory Policy
+# Build Directory Policy
 
-- ALWAYS perform builds in the `build/` directory or a subdirectory of it
+- ALWAYS perform builds using out-of-source build directory (`build/`)
+- Use `cmake -S . -B build` to configure without changing directories
+- Use `cmake --build build` to build without changing directories
 - NEVER run `cmake .` or `make` in the project root directory
 - NEVER run builds in any subdirectories of the project (like `tests/`)
 - If temporary builds are needed elsewhere, use `/tmp` or similar external temporary directories
@@ -74,8 +76,14 @@ Tests are organized in the `tests/` directory using Catch2 framework:
 
 Test executables are built in the `build/` directory:
 ```bash
-# Build and run a specific test
-cd build && ./tests/formula_visitor_test
+# Build and run all tests (recommended)
+cmake --build build --target test -- -V
+
+# Alternative: Run specific test using ctest
+cd build && ctest -R formula_visitor_test
+
+# Direct execution of test executable
+./build/tests/formula_visitor_test
 ```
 
 ## Development Guidelines

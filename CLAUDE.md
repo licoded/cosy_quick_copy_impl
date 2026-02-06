@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-IMPORTANT: When making git commits, DO NOT add "Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>" line to commit messages.
+IMPORTANT: When making git commits, DO NOT add co-author attribution lines (such as "Co-Authored-By:", "Signed-off-by:", etc.) to commit messages.
 
 ## Project Overview
 

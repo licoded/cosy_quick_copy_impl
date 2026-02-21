@@ -1,87 +1,89 @@
-#include "synutil/formula_in_bdd.h"
-#include "debug.h"
+#include "cudd/formula_in_bdd.hpp"
+#include "cudd/cudd_config.hpp"
 #include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <queue>
 #include <vector>
 
-#include "formula/aalta_formula.h"
-#include <cudd/cuddObj.hh>
+namespace Cosy {
 
-using namespace std;
-using namespace aalta;
-
-namespace syn_util {
-
-void FormulaInBddMgr::buildClauses(aalta_formula *af)
+void FormulaInBddMgr::buildClauses(Formula* af)
 {
-    if (af == NULL)
+    if (af == nullptr)
         return;
-    if (afP_to_bddP_.find(u_int64_t(af)) != afP_to_bddP_.end())
+    if (afP_to_bddP_.find(uint64_t(af)) != afP_to_bddP_.end())
         return;
-    int op = af->oper();
-    if (op >= 11)
-    {
-        exit_with_error("All atoms should be init in the beginning! Found uninitialized atom: " + af->to_string());
+
+    Operator op = af->op();
+
+    // For literals (atoms), they should be initialized in fixAtomOrder
+    if (op == Operator::Literal) {
+        // Check if this is a known literal
+        if (!hasBuilt(af)) {
+            exit_with_error("All atoms should be init in the beginning! Found uninitialized atom: " + af->toString());
+        }
         return;
     }
+
     switch (op)
     {
-    case aalta_formula::True:
-    case aalta_formula::False:
+    case Operator::True:
+    case Operator::False:
         break;
-    case aalta_formula::Next:
-    case aalta_formula::WNext:
+    case Operator::Next:
+    case Operator::WNext:
         buildIfMissing(af);
         break;
-    case aalta_formula::Not:
-        buildClauses(af->r_af());
+    case Operator::Not:
+        buildClauses(af->right());
         break;
-    case aalta_formula::Until:
-    case aalta_formula::Release:
-        if (af == aalta_formula::TAIL() || af == aalta_formula::NOT_TAIL())
+    case Operator::Until:
+    case Operator::Release:
+        // Check for tail/not_tail
+        if (is_tail(af) || is_not_tail(af))
             break;
         exit_with_error("Please convert the formula to XNF first!");
-        // aalta_formula::opkind next_op = (op == aalta_formula::Until) ? aalta_formula::Next : aalta_formula::WNext;
-        // aalta_formula *next_af = aalta_formula(op, NULL, af).unique();
-        // buildIfMissing(next_af);
         break;
-    case aalta_formula::And:
-    case aalta_formula::Or:
-        buildClauses(af->l_af());
-        buildClauses(af->r_af());
+    case Operator::And:
+    case Operator::Or:
+        buildClauses(af->left());
+        buildClauses(af->right());
+        break;
+    default:
         break;
     }
 }
 
-DdNode *FormulaInBddMgr::constructBdd(aalta_formula *af)
+DdNode *FormulaInBddMgr::constructBdd(Formula* af)
 {
-    if (af == NULL)
+    if (af == nullptr)
         exit_with_error("[constructBdd] the formula is NULL!");
-    if (afP_to_bddP_.find(u_int64_t(af)) != afP_to_bddP_.end())
+    if (afP_to_bddP_.find(uint64_t(af)) != afP_to_bddP_.end())
     {
-        DdNode *cache_node = afP_to_bddP_.at(u_int64_t(af));
+        DdNode *cache_node = afP_to_bddP_.at(uint64_t(af));
         return Cudd_Ref_Wrapper(cache_node);
     }
-    int op = af->oper();
+
+    Operator op = af->op();
     DdNode *res_node = nullptr;
+
     switch (op)
     {
-    case aalta_formula::Not:
+    case Operator::Not:
     {
-        DdNode *tmp = constructBdd(af->r_af());
+        DdNode *tmp = constructBdd(af->right());
         DdNode *not_tmp = Cudd_Not(tmp);
         res_node = Cudd_Ref_Wrapper(not_tmp);
         Cudd_Unref(tmp);
         break;
     }
-    case aalta_formula::And:
-    case aalta_formula::Or:
+    case Operator::And:
+    case Operator::Or:
     {
-        DdNode *l_bdd = constructBdd(af->l_af());
-        DdNode *r_bdd = constructBdd(af->r_af());
-        DdNode *result = (op == aalta_formula::And) ? Cudd_bddAnd(l_bdd, r_bdd) : Cudd_bddOr(l_bdd, r_bdd);
+        DdNode *l_bdd = constructBdd(af->left());
+        DdNode *r_bdd = constructBdd(af->right());
+        DdNode *result = (op == Operator::And) ? Cudd_bddAnd(l_bdd, r_bdd) : Cudd_bddOr(l_bdd, r_bdd);
         res_node = Cudd_Ref_Wrapper(result);
         Cudd_Unref(l_bdd);
         Cudd_Unref(r_bdd);
@@ -89,19 +91,20 @@ DdNode *FormulaInBddMgr::constructBdd(aalta_formula *af)
     }
     default: // Atom, Next, WNext
     {
-        spdlog::error("[constructBdd] for {}", af->to_string());
+        spdlog::error("[constructBdd] for {}", af->toString());
         exit_with_error("[constructBdd] Atom, Next, WNext should be already built!");
     }
     }
-    afP_to_bddP_.insert({u_int64_t(af), res_node});
+
+    afP_to_bddP_.insert({uint64_t(af), res_node});
     return Cudd_Ref_Wrapper(res_node);
 }
 
-DdNode *FormulaInBddMgr::convertFormula2Bdd(aalta_formula *af)
+DdNode *FormulaInBddMgr::convertFormula2Bdd(Formula* af)
 {
-    if (afP_to_bddP_.find(u_int64_t(af)) == afP_to_bddP_.end())
+    if (afP_to_bddP_.find(uint64_t(af)) == afP_to_bddP_.end())
         constructBdd(af);
-    return afP_to_bddP_.at(u_int64_t(af));
+    return afP_to_bddP_.at(uint64_t(af));
 }
 
 bool FormulaInBddMgr::CheckImplies(DdNode *f1, DdNode *f2)
@@ -116,7 +119,7 @@ bool FormulaInBddMgr::CheckImplies(DdNode *f1, DdNode *f2)
     return res_flag;
 }
 
-bool FormulaInBddMgr::CheckImplies(aalta::aalta_formula *edge_af1, aalta::aalta_formula *edge_af2)
+bool FormulaInBddMgr::CheckImplies(Formula* edge_af1, Formula* edge_af2)
 {
     DdNode *f1_bdd = convertFormula2Bdd(edge_af1);
     DdNode *f2_bdd = convertFormula2Bdd(edge_af2);
@@ -133,7 +136,7 @@ bool FormulaInBddMgr::CheckConflicts(DdNode *f1, DdNode *f2)
     return res_flag;
 }
 
-bool FormulaInBddMgr::CheckConflicts(aalta::aalta_formula *edge_af1, aalta::aalta_formula *edge_af2)
+bool FormulaInBddMgr::CheckConflicts(Formula* edge_af1, Formula* edge_af2)
 {
     DdNode *f1_bdd = convertFormula2Bdd(edge_af1);
     DdNode *f2_bdd = convertFormula2Bdd(edge_af2);
@@ -141,4 +144,4 @@ bool FormulaInBddMgr::CheckConflicts(aalta::aalta_formula *edge_af1, aalta::aalt
     return is_conflict;
 }
 
-} // namespace syn_util
+} // namespace Cosy

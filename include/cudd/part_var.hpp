@@ -1,16 +1,19 @@
 #pragma once
+#include "cudd/formula_utils.hpp"
+#include "formula/formula.hpp"
+#include "formula/builder.hpp"
+#include "formula/variable_collector.hpp"
+#include "formula/operator.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <formula/aalta_formula.h>
-#include <formula/af_utils.h>
 #include <spdlog/spdlog.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
-namespace syn_util {
+namespace Cosy {
 
 void sortVarsByNames(std::vector<int> &varId_vec);
 
@@ -75,25 +78,26 @@ class PartVar
     std::vector<int> const &getXVarIds() const { return X_var_vec_; }
     std::vector<int> const &getYVarIds() const { return Y_var_vec_; }
 
-    std::pair<aalta::aalta_formula *, aalta::aalta_formula *> *split_XY_from_edgeAf(aalta::aalta_formula *af)
+    std::pair<Formula*, Formula*> *split_XY_from_edgeAf(Formula* af, FormulaBuilder& builder)
     {
         std::unordered_set<int> edge_var_set;
-        af->to_set(edge_var_set);
-        std::vector<aalta::aalta_formula *> af_X_vec;
-        std::vector<aalta::aalta_formula *> af_Y_vec;
+        collect_var_ids(af, edge_var_set);
+        std::vector<Formula*> af_X_vec;
+        std::vector<Formula*> af_Y_vec;
         for (auto it : edge_var_set)
         {
-            aalta::aalta_formula *cur_var = aalta::aalta_formula(abs(it), NULL, NULL).unique();
+            // Create literal formula for this variable
+            Formula* cur_var = builder.make_literal(get_global_symbol_table().get_var_name(abs(it)));
             if (it < 0)
-                cur_var = aalta::aalta_formula(aalta::aalta_formula::Not, NULL, cur_var).unique();
+                cur_var = builder.make_unary(Operator::Not, cur_var);
             assert(X_vars_.find(abs(it)) != X_vars_.end() || Y_vars_.find(abs(it)) != Y_vars_.end());
             if (X_vars_.find(abs(it)) != X_vars_.end())
                 af_X_vec.push_back(cur_var);
             else
                 af_Y_vec.push_back(cur_var);
         }
-        std::pair<aalta::aalta_formula *, aalta::aalta_formula *> *XY_af_pair
-            = new std::pair<aalta::aalta_formula *, aalta::aalta_formula *>(formula_from(af_X_vec), formula_from(af_Y_vec));
+        std::pair<Formula*, Formula*> *XY_af_pair
+            = new std::pair<Formula*, Formula*>(formula_conjunction(builder, af_X_vec), formula_conjunction(builder, af_Y_vec));
         return XY_af_pair;
     }
 };
@@ -105,58 +109,49 @@ class PartVarBuilder
 
   public:
     PartVarBuilder() : X_vars_(), Y_vars_() {}
-    void partitioinAtoms(const aalta::aalta_formula *af, const std::unordered_set<std::string> &env_var_names)
+    void partitionAtoms(const Formula* af, const std::unordered_set<std::string> &env_var_names)
     {
-        int op = af->oper();
+        if (af == nullptr) return;
+
+        Operator op = af->op();
         switch (op)
         {
-        case aalta::aalta_formula::True:
-        case aalta::aalta_formula::False:
+        case Operator::True:
+        case Operator::False:
             break;
-        case aalta::aalta_formula::Not:
-        case aalta::aalta_formula::Next:
-        case aalta::aalta_formula::WNext:
-            partitioinAtoms(af->r_af(), env_var_names);
+        case Operator::Not:
+        case Operator::Next:
+        case Operator::WNext:
+            partitionAtoms(af->right(), env_var_names);
             break;
-        case aalta::aalta_formula::And:
-        case aalta::aalta_formula::Or:
-        case aalta::aalta_formula::Until:
-        case aalta::aalta_formula::Release:
-            partitioinAtoms(af->l_af(), env_var_names);
-            partitioinAtoms(af->r_af(), env_var_names);
+        case Operator::And:
+        case Operator::Or:
+        case Operator::Until:
+        case Operator::Release:
+            partitionAtoms(af->left(), env_var_names);
+            partitionAtoms(af->right(), env_var_names);
             break;
-        default: // Atom
-            /* For atom, _op is idx of atom in aalta_formula::names */
-            if (env_var_names.find(af->to_string()) != env_var_names.end())
-                X_vars_.insert(op);
-            else
-                Y_vars_.insert(op);
+        case Operator::Literal:
+            /* For literal, check if it's an environment variable */
+            {
+                std::string var_name = get_global_symbol_table().get_var_name(af->var_id());
+                if (env_var_names.find(var_name) != env_var_names.end())
+                    X_vars_.insert(af->var_id());
+                else
+                    Y_vars_.insert(af->var_id());
+            }
+            break;
+        default:
             break;
         }
     }
-    PartVar build(const aalta::aalta_formula *af, const std::unordered_set<std::string> &env_var_names)
+    PartVar build(const Formula* af, const std::unordered_set<std::string> &env_var_names)
     {
-        partitioinAtoms(af, env_var_names);
-        // std::string s_x = "";
-        // for (auto x_var : X_vars_)
-        // {
-        //     auto af = aalta::aalta_formula(x_var, NULL, NULL).unique();
-        //     auto af_s = af->to_string();
-        //     s_x += af_s + ", ";
-        // }
-        // std::string s_y = "";
-        // for (auto y_var : Y_vars_)
-        // {
-        //     auto af = aalta::aalta_formula(y_var, NULL, NULL).unique();
-        //     auto af_s = af->to_string();
-        //     s_y += af_s + ", ";
-        // }
-        // spdlog::warn("X_vars:\t{}", s_x);
-        // spdlog::warn("Y_vars:\t{}", s_y);
+        partitionAtoms(af, env_var_names);
         return PartVar(X_vars_, Y_vars_);
     }
 };
 
-PartVar makePartVar(aalta::aalta_formula *state_af, const std::unordered_set<std::string> &env_var_names);
+PartVar makePartVar(Formula* state_af, FormulaBuilder& builder, const std::unordered_set<std::string> &env_var_names);
 
-} // namespace syn_util
+} // namespace Cosy

@@ -1,13 +1,14 @@
 #pragma once
-#include "debug.h"
-#include "formula/aalta_formula.h"
-#include "synutil/part_var.h"
+#include "cudd/cudd_config.hpp"
+#include "cudd/part_var.hpp"
+#include "formula/formula.hpp"
 #include <algorithm>
 #include <cudd/cuddObj.hh>
 #include <spdlog/spdlog.h>
+#include <unordered_set>
 #include <vector>
 
-namespace syn_util {
+namespace Cosy {
 
 void print_succinct_info(DdManager *mgr);
 
@@ -16,17 +17,16 @@ class ICuddMgr
     // === for part_var ===
   protected:
     PartVar part_var_;
+    FormulaBuilder& builder_;
 
   public:
     bool need_print_ = true;
     PartVar &getPartVar() { return part_var_; }
+    FormulaBuilder& getBuilder() { return builder_; }
     bool isYVar(DdNode *addP) const { return Cudd_NodeReadIndex(addP) < part_var_.getYVarNum(); }
     bool isXYVar(DdNode *addP) const { return Cudd_NodeReadIndex(addP) < part_var_.getAllVarNum(); }
     std::unordered_set<int> const &getAllVarIds() const { return part_var_.getAllVarIds(); }
-    std::pair<aalta::aalta_formula *, aalta::aalta_formula *> *split_XY_from_edgeAf(aalta::aalta_formula *af)
-    {
-        return part_var_.split_XY_from_edgeAf(af);
-    }
+    std::pair<Formula*, Formula*> *split_XY_from_edgeAf(Formula* af);
 
     // === for cudd_mgr ===
   protected:
@@ -37,7 +37,7 @@ class ICuddMgr
 
     void createCuddMgr()
     {
-        cudd_mgr_ = Cudd_Init(0, 0, CUDD_UNIQUE_SLOTS * aalta::times_UNIQUE_SLOTS, CUDD_CACHE_SLOTS * aalta::times_CACHE_SLOTS, 0);
+        cudd_mgr_ = Cudd_Init(0, 0, CUDD_UNIQUE_SLOTS * CUDD_TIMES_UNIQUE_SLOTS, CUDD_CACHE_SLOTS * CUDD_TIMES_CACHE_SLOTS, 0);
         Cudd_RegisterOutOfMemoryCallback(cudd_mgr_, [](size_t size) {
             exit_with_error("CUDD ran out of memory while trying to allocate " + std::to_string(size) + " bytes!");
         });
@@ -129,68 +129,25 @@ class ICuddMgr
 
     // === fixAtomOrder ===
   protected:
-    std::vector<aalta::aalta_formula *> getAtoms()
-    {
-        std::vector<aalta::aalta_formula *> atoms;
-        std::transform(part_var_.getYVarIds().begin(), part_var_.getYVarIds().end(), std::back_inserter(atoms),
-                       [](int varId) { return aalta::aalta_formula(varId, NULL, NULL).unique(); });
-        std::transform(part_var_.getXVarIds().begin(), part_var_.getXVarIds().end(), std::back_inserter(atoms),
-                       [](int varId) { return aalta::aalta_formula(varId, NULL, NULL).unique(); });
-        return atoms;
-    }
-    virtual void fixAtomOrder(const std::vector<aalta::aalta_formula *> &atoms) = 0;
+    virtual void fixAtomOrder() = 0;
 
     // === ctor and dtor
   public:
-    explicit ICuddMgr(PartVar part_var) : part_var_(part_var)
-    {
-        createCuddMgr();
-        initTrueFalseBdd();
-    }
-    void releaseMgr()
-    {
-        if (cudd_mgr_ != NULL)
-        {
-            if (aalta::PRINT_CUDD_FLAG && need_print_)
-            {
-                spdlog::critical("=== BEGIN ------ CUDD manager info === 0x{:x}", u_int64_t(this));
-                print_succinct_info(cudd_mgr_);
-                spdlog::critical("=== END   ------ CUDD detail  info ===");
-            }
-            Cudd_Quit(cudd_mgr_);
-            cudd_mgr_ = NULL;
-        }
-    }
-    ~ICuddMgr() { releaseMgr(); }
+    explicit ICuddMgr(PartVar part_var, FormulaBuilder& builder);
+    void releaseMgr();
+    virtual ~ICuddMgr();
 
     // === trans in cudd tree
   protected:
     std::vector<unsigned int> af_atomOper_vec_;
 
   public:
-    DdNode *transByEdgeAf(DdNode *root_ddP, aalta::aalta_formula *edge_af)
-    {
-        std::unordered_set<int> lit_set;
-        edge_af->to_set(lit_set);
-        DdNode *cur_ddP = Cudd_Ref_Wrapper(root_ddP);
-        while (isXYVar(cur_ddP))
-        {
-            unsigned int varId = af_atomOper_vec_.at(Cudd_NodeReadIndex(cur_ddP));
-            DdNode *true_addP = Cudd_IsComplement(cur_ddP) ? ADD_Not(cur_ddP) : cur_ddP;
-            if (lit_set.find(varId) != lit_set.end())
-                cur_ddP = Cudd_T(true_addP);
-            else
-                cur_ddP = Cudd_E(true_addP);
-            Cudd_Unref(true_addP);
-            Cudd_Ref(cur_ddP);
-        }
-        return cur_ddP;
-    }
+    DdNode *transByEdgeAf(DdNode *root_ddP, Formula* edge_af);
 
     // === for edge_cons_builder
   public:
-    virtual aalta::aalta_formula *getCurAfVar(DdNode *cuddP) const = 0;
+    virtual Formula* getCurAfVar(DdNode *cuddP) const = 0;
     virtual DdNode *getRealCuddP(DdNode *raw_cuddP) = 0;
 };
 
-} // namespace syn_util
+} // namespace Cosy

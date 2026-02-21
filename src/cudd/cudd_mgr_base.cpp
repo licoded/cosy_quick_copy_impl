@@ -45,9 +45,10 @@ DdNode *ICuddMgr::transByEdgeAf(DdNode *root_ddP, Formula* edge_af)
     DdNode *cur_ddP = Cudd_Ref_Wrapper(root_ddP);
     while (isXYVar(cur_ddP))
     {
-        unsigned int varId = af_atomOper_vec_.at(Cudd_NodeReadIndex(cur_ddP));
+        Formula *afP = afP_vec_.at(Cudd_NodeReadIndex(cur_ddP));
+        assert(afP->op() == Operator::Literal);
         DdNode *true_addP = Cudd_IsComplement(cur_ddP) ? ADD_Not(cur_ddP) : cur_ddP;
-        if (lit_set.find(varId) != lit_set.end())
+        if (lit_set.find(afP->var_id()) != lit_set.end())
             cur_ddP = Cudd_T(true_addP);
         else
             cur_ddP = Cudd_E(true_addP);

@@ -2,6 +2,7 @@
 #include "cudd/cudd_config.hpp"
 #include "cudd/part_var.hpp"
 #include "formula/formula.hpp"
+#include "formula/operator.hpp"
 #include <algorithm>
 #include <cudd/cuddObj.hh>
 #include <spdlog/spdlog.h>
@@ -139,7 +140,7 @@ class ICuddMgr
 
     // === trans in cudd tree
   protected:
-    std::vector<unsigned int> af_atomOper_vec_;
+    std::vector<Formula*> afP_vec_;  // 存储 Formula 指针，用于获取 var_id
 
   public:
     DdNode *transByEdgeAf(DdNode *root_ddP, Formula* edge_af);

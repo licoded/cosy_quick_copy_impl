@@ -49,7 +49,6 @@ class FormulaInBdd : public IHashId
 class FormulaInBddMgr : public ICuddMgr
 {
   private:
-    std::vector<Formula*> afP_vec_;
     std::vector<std::string> af_str_vec_;
     std::vector<DdNode *> bddP_vec_;
     std::unordered_map<uint64_t, DdNode *> afP_to_bddP_;
@@ -58,8 +57,6 @@ class FormulaInBddMgr : public ICuddMgr
     {
         afP_vec_.push_back(af);
         afP_to_bddP_.insert({uint64_t(af), bdd});
-        // Store the operator type for atom operations
-        af_atomOper_vec_.push_back(static_cast<unsigned int>(af->op()));
     }
     void buildIfMissing(Formula* af)
     {

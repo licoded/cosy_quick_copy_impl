@@ -17,6 +17,8 @@ public:
     Formula* parse(const std::string& str);
     Formula* make_true();
     Formula* make_false();
+    Formula* make_tail();
+    Formula* make_not_tail();
     Formula* make_literal(const std::string& name);
     Formula* make_unary(Operator op, Formula* operand);
     Formula* make_binary(Operator op, Formula* left, Formula* right);
@@ -39,6 +41,8 @@ private:
     UniqueTable unique_table_;
     Formula* true_formula_ = nullptr;
     Formula* false_formula_ = nullptr;
+    Formula* tail_formula_ = nullptr;
+    Formula* not_tail_formula_ = nullptr;
 };
 
 } // namespace Cosy

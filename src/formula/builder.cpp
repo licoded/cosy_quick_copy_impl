@@ -95,6 +95,28 @@ Formula* FormulaBuilder::make_false() {
     return false_formula_;
 }
 
+Formula* FormulaBuilder::make_tail() {
+    // Return singleton if already created
+    if (tail_formula_) {
+        return tail_formula_;
+    }
+
+    // Create new Tail formula
+    tail_formula_ = make_binary(Operator::Release, make_false(), make_false());
+    return tail_formula_;
+}
+
+Formula* FormulaBuilder::make_not_tail() {
+    // Return singleton if already created
+    if (not_tail_formula_) {
+        return not_tail_formula_;
+    }
+
+    // Create new NOT_Tail formula
+    not_tail_formula_ = make_binary(Operator::Until, make_true(), make_true());
+    return not_tail_formula_;
+}
+
 Formula* FormulaBuilder::make_literal(const std::string& var_name) {
     unsigned int id = context_.symbols().get_or_create_variable_id(var_name);
 

@@ -124,13 +124,6 @@ private:
         return res;
     }
 
-    CUDD::BDD convertFormula2Bdd(Formula* af)
-    {
-        if (!cache_.hasBuilt(af))
-            constructBdd(af);
-        return cache_.getBdd(af);
-    }
-
     // === 初始化方法 ===
 
     void fixAtomOrder()
@@ -224,6 +217,15 @@ public:
         return new FormulaInBdd(af, std::move(bdd));
     }
 
+    // === Formula → BDD 转换 ===
+
+    CUDD::BDD convertFormula2Bdd(Formula* af)
+    {
+        if (!cache_.hasBuilt(af))
+            constructBdd(af);
+        return cache_.getBdd(af);
+    }
+
     // === 变量查询 ===
 
     Formula* getCurAfVar(DdNode* bddP) const
@@ -233,55 +235,22 @@ public:
             exit_with_error("[getCurAfVar] BDD node is not a variable!");
         return cache_.getFormulaByIndex(bdd.NodeReadIndex());
     }
-
-    // === 逻辑检查 ===
-
-    bool checkImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const
-    {
-        return BddChecker::checkImplies(f1, f2, core_.falseBdd());
-    }
-
-    bool checkConflicts(const CUDD::BDD& f1, const CUDD::BDD& f2) const
-    {
-        return BddChecker::checkConflicts(f1, f2, core_.falseBdd());
-    }
-
-    bool checkImplies(Formula* f1, Formula* f2)
-    {
-        CUDD::BDD bdd1 = convertFormula2Bdd(f1);
-        CUDD::BDD bdd2 = convertFormula2Bdd(f2);
-        return checkImplies(bdd1, bdd2);
-    }
-
-    bool checkConflicts(Formula* f1, Formula* f2)
-    {
-        CUDD::BDD bdd1 = convertFormula2Bdd(f1);
-        CUDD::BDD bdd2 = convertFormula2Bdd(f2);
-        return checkConflicts(bdd1, bdd2);
-    }
-
-    // === 向后兼容别名（deprecated，后续可移除） ===
-
-    // 为了兼容旧代码，提供大写开头的别名
-    bool CheckImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const
-    {
-        return checkImplies(f1, f2);
-    }
-
-    bool CheckConflicts(const CUDD::BDD& f1, const CUDD::BDD& f2) const
-    {
-        return checkConflicts(f1, f2);
-    }
-
-    bool CheckImplies(Formula* f1, Formula* f2)
-    {
-        return checkImplies(f1, f2);
-    }
-
-    bool CheckConflicts(Formula* f1, Formula* f2)
-    {
-        return checkConflicts(f1, f2);
-    }
 };
+
+// === 自由函数：逻辑检查 ===
+
+inline bool checkImplies(CuddMgr& mgr, Formula* f1, Formula* f2)
+{
+    CUDD::BDD bdd1 = mgr.convertFormula2Bdd(f1);
+    CUDD::BDD bdd2 = mgr.convertFormula2Bdd(f2);
+    return BddChecker::checkImplies(bdd1, bdd2, mgr.falseBdd());
+}
+
+inline bool checkConflicts(CuddMgr& mgr, Formula* f1, Formula* f2)
+{
+    CUDD::BDD bdd1 = mgr.convertFormula2Bdd(f1);
+    CUDD::BDD bdd2 = mgr.convertFormula2Bdd(f2);
+    return BddChecker::checkConflicts(bdd1, bdd2, mgr.falseBdd());
+}
 
 }  // namespace Cosy

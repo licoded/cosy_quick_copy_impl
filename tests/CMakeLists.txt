@@ -37,8 +37,9 @@ add_test(NAME formula_simplify_until_test COMMAND formula_simplify_until_test)
 add_test(NAME formula_simplify_release_test COMMAND formula_simplify_release_test)
 add_test(NAME formula_visitor_test COMMAND formula_visitor_test)
 
-# Tarjan SCC test (standalone, no Catch2)
+# Tarjan SCC test
 add_executable(tarjan_scc_test tarjan/tarjan_scc_test.cpp)
+target_link_libraries(tarjan_scc_test PRIVATE Catch2::Catch2WithMain)
 target_include_directories(tarjan_scc_test PRIVATE ${CMAKE_SOURCE_DIR}/include)
 set_target_properties(tarjan_scc_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests

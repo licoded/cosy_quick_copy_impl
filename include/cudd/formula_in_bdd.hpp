@@ -15,8 +15,10 @@
 #include <string>
 #include <unordered_map>
 
-template <> struct fmt::formatter<Cosy::Formula> : fmt::formatter<std::string> {
-    auto format(Cosy::Formula af, format_context &ctx) const -> decltype(ctx.out())
+template <>
+struct fmt::formatter<Cosy::Formula> : fmt::formatter<std::string>
+{
+    auto format(Cosy::Formula af, format_context& ctx) const -> decltype(ctx.out())
     {
         return fmt::format_to(ctx.out(), "{}", af.toString());
     }
@@ -24,56 +26,61 @@ template <> struct fmt::formatter<Cosy::Formula> : fmt::formatter<std::string> {
 
 namespace Cosy {
 
-class CuddMgr;
 class FormulaInBddMgr;
-class FormulaInBdd;
 
 class FormulaInBdd : public IHashId
 {
   private:
     Formula* formula_;
-    DdNode *bdd_;
+    CUDD::BDD bdd_;
 
   public:
-    FormulaInBdd(Formula* af, DdNode *bdd) : formula_(af), bdd_(bdd) {}
+    FormulaInBdd(Formula* af, CUDD::BDD bdd) : formula_(af), bdd_(std::move(bdd)) {}
 
-    inline DdNode *getBddP() const { return bdd_; }
-    inline Formula* getAfP() const { return formula_; }
-    inline uint64_t getHashId() const override { return uint64_t(getBddP()); }
+    CUDD::BDD getBdd() const { return bdd_; }
+    DdNode* getBddNode() const { return bdd_.getNode(); }
+    Formula* getAfP() const { return formula_; }
+    uint64_t getHashId() const override { return reinterpret_cast<uint64_t>(bdd_.getNode()); }
     std::string toString() const override { return fmt::format("[{}]: {}", getHashId(), getAfP()->toString()); }
 
-    ~FormulaInBdd() override {}
+    ~FormulaInBdd() override = default;
 };
 
 class FormulaInBddMgr : public ICuddMgr
 {
   private:
     std::vector<std::string> af_str_vec_;
-    std::vector<DdNode *> bddP_vec_;
-    std::unordered_map<uint64_t, DdNode *> afP_to_bddP_;
+    std::unordered_map<uint64_t, CUDD::BDD> afP_to_bddP_;
+
     bool hasBuilt(Formula* af) { return afP_to_bddP_.find(uint64_t(af)) != afP_to_bddP_.end(); }
-    void recordBuiltMap(Formula* af, DdNode *bdd)
+
+    void recordBuiltMap(Formula* af, CUDD::BDD bdd)
     {
         afP_vec_.push_back(af);
-        afP_to_bddP_.insert({uint64_t(af), bdd});
+        afP_to_bddP_.insert({uint64_t(af), std::move(bdd)});
     }
+
     void buildIfMissing(Formula* af)
     {
         if (!hasBuilt(af))
             recordBuiltMap(af, newBddVar());
     }
-    DdNode *getBdd(Formula* af) { return afP_to_bddP_.at(uint64_t(af)); }
+
+    CUDD::BDD getBdd(Formula* af) { return afP_to_bddP_.at(uint64_t(af)); }
+
     void buildClauses(Formula* af);
-    DdNode *constructBdd(Formula* af);
-    DdNode *convertFormula2Bdd(Formula* af);
+    CUDD::BDD constructBdd(Formula* af);
+    CUDD::BDD convertFormula2Bdd(Formula* af);
 
     std::vector<Formula*> getAtomsWithBuilder()
     {
         std::vector<Formula*> atoms;
-        for (int varId : part_var_.getYVarIds()) {
+        for (int varId : part_var_.getYVarIds())
+        {
             atoms.push_back(builder_.make_literal(varId));
         }
-        for (int varId : part_var_.getXVarIds()) {
+        for (int varId : part_var_.getXVarIds())
+        {
             atoms.push_back(builder_.make_literal(varId));
         }
         return atoms;
@@ -87,15 +94,16 @@ class FormulaInBddMgr : public ICuddMgr
         for (auto atom : atoms)
             var_names_.push_back(atom->toString());
     }
+
     void initTailBdd()
     {
         Formula* tail = builder_.make_tail();
         assert(!hasBuilt(tail));
-        DdNode *tail_bdd = newBddVar();
+        CUDD::BDD tail_bdd = newBddVar();
         recordBuiltMap(tail, tail_bdd);
+
         Formula* not_tail = builder_.make_not_tail();
-        DdNode *not_tail_bdd = Cudd_Not(tail_bdd);
-        Cudd_Ref(not_tail_bdd);
+        CUDD::BDD not_tail_bdd = !tail_bdd;
         recordBuiltMap(not_tail, not_tail_bdd);
     }
 
@@ -105,32 +113,32 @@ class FormulaInBddMgr : public ICuddMgr
     {
         fixAtomOrder();
         initTailBdd();
-        afP_to_bddP_.insert({uint64_t(builder_.make_true()), TRUE_bddP_});
-        afP_to_bddP_.insert({uint64_t(builder_.make_false()), FALSE_bddP_});
+        afP_to_bddP_.insert({uint64_t(builder_.make_true()), trueBdd()});
+        afP_to_bddP_.insert({uint64_t(builder_.make_false()), falseBdd()});
     }
 
-    FormulaInBdd *createFormulaInBdd(Formula* af, Formula* xnf_af)
+    FormulaInBdd* createFormulaInBdd(Formula* af, Formula* xnf_af)
     {
         buildClauses(xnf_af);
-        DdNode *bdd = convertFormula2Bdd(xnf_af);
-        spdlog::debug("FormulaInBddMgr::createFormulaInBdd\n{}\n{}\n{}", af->toString(), xnf_af->toString(), uint64_t(bdd));
-        return new FormulaInBdd(af, bdd);
+        CUDD::BDD bdd = convertFormula2Bdd(xnf_af);
+        spdlog::debug("FormulaInBddMgr::createFormulaInBdd\n{}\n{}\n{}", af->toString(), xnf_af->toString(),
+                      reinterpret_cast<uint64_t>(bdd.getNode()));
+        return new FormulaInBdd(af, std::move(bdd));
     }
 
-    Formula* getCurAfVar(DdNode *bddP) const override
+    Formula* getCurAfVar(DdNode* bddP) const override
     {
-        if (!isXYVar(bddP))
+        CUDD::BDD bdd(const_cast<CUDD::Cudd&>(cudd_), bddP);
+        if (!isXYVar(bdd, part_var_.getAllVarNum()))
             exit_with_error("[getCurAfVar] BDD node is not a variable!");
-        return afP_vec_[Cudd_NodeReadIndex(bddP)];
+        return afP_vec_[bdd.NodeReadIndex()];
     }
 
-    DdNode *getRealCuddP(DdNode *bddP) override { return Cudd_IsComplement(bddP) ? Cudd_Regular(bddP) : bddP; }
-
-    bool CheckImplies(DdNode *f1, DdNode *f2);
+    bool CheckImplies(const CUDD::BDD& f1, const CUDD::BDD& f2);
     bool CheckImplies(Formula* edge_af1, Formula* edge_af2);
 
-    bool CheckConflicts(DdNode *f1, DdNode *f2);
+    bool CheckConflicts(const CUDD::BDD& f1, const CUDD::BDD& f2);
     bool CheckConflicts(Formula* edge_af1, Formula* edge_af2);
 };
 
-} // namespace Cosy
+}  // namespace Cosy

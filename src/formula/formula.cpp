@@ -3,6 +3,7 @@
 #include "formula/stringifier.hpp"
 #include "formula/synthesis_context.hpp"
 #include "formula/simplify/simplifier.hpp"
+#include "formula/trans/nnf.hpp"
 #include "formula/hash.hpp"
 #include "formula/visitor.hpp"
 
@@ -28,6 +29,10 @@ std::string Formula::toString() const {
 
 Formula* Formula::simplify() {
     return FormulaSimplifier::simplify(this, context_->formula_builder());
+}
+
+Formula* Formula::nnf() {
+    return NNFTransformer::to_nnf(this, context_->formula_builder());
 }
 
 void Formula::accept(Visitor& visitor) const {

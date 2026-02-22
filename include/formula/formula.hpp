@@ -20,6 +20,7 @@ public:
     bool is_binary() const;
     size_t hash() const { return hash_; }
     Formula* simplify();
+    Formula* nnf();
 
     // 访问者模式支持
     void accept(Visitor& visitor) const;

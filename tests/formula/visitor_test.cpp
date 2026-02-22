@@ -1,7 +1,6 @@
 #include "formula/formula.hpp"
 #include "formula/visitor.hpp"
 #include "formula/synthesis_context.hpp"
-#include "formula/simplification_visitor.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 using namespace Cosy;

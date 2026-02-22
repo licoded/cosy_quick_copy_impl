@@ -5,7 +5,6 @@
 #include "formula/simplify/simplifier.hpp"
 #include "formula/hash.hpp"
 #include "formula/visitor.hpp"
-#include "formula/simplification_visitor.hpp"
 
 namespace Cosy {
 

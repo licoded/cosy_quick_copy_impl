@@ -22,6 +22,7 @@ add_formula_test(formula_simplify_wnext_test formula/simplify/wnext.cpp)
 add_formula_test(formula_simplify_until_test formula/simplify/until.cpp)
 add_formula_test(formula_simplify_release_test formula/simplify/release.cpp)
 add_formula_test(formula_visitor_test formula/visitor_test.cpp)
+add_formula_test(formula_unique_tail_test formula/unique/tail_not_tail.cpp)
 
 add_test(NAME formula_parser_base_test COMMAND formula_parser_base_test)
 add_test(NAME formula_parser_unary_test COMMAND formula_parser_unary_test)
@@ -36,6 +37,7 @@ add_test(NAME formula_simplify_wnext_test COMMAND formula_simplify_wnext_test)
 add_test(NAME formula_simplify_until_test COMMAND formula_simplify_until_test)
 add_test(NAME formula_simplify_release_test COMMAND formula_simplify_release_test)
 add_test(NAME formula_visitor_test COMMAND formula_visitor_test)
+add_test(NAME formula_unique_tail_test COMMAND formula_unique_tail_test)
 
 # Tarjan SCC test
 add_executable(tarjan_scc_test tarjan/tarjan_scc_test.cpp)

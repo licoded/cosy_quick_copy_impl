@@ -3,6 +3,7 @@
 #include "dfs_context.hpp"
 #include "edge_iterator.hpp"
 #include "scc_detector.hpp"
+#include "tarjan_observer.hpp"
 #include "tarjan_state.hpp"
 #include "tarjan_strategy.hpp"
 
@@ -20,15 +21,19 @@ public:
 private:
     ITarjanStrategy<Types>* strategy_;
     IEdgeIteratorFactory<Types>* edge_factory_;
+    ITarjanObserver<Types>* observer_;
 
     DfsContext dfs_ctx_;
     TarjanState state_;
     SccDetector scc_detector_;
 
 public:
-    Tarjan(ITarjanStrategy<Types>* strategy, IEdgeIteratorFactory<Types>* edge_factory)
+    Tarjan(ITarjanStrategy<Types>* strategy,
+           IEdgeIteratorFactory<Types>* edge_factory,
+           ITarjanObserver<Types>* observer = nullptr)
         : strategy_(strategy)
         , edge_factory_(edge_factory)
+        , observer_(observer)
         , scc_detector_(state_)
     {
     }
@@ -57,7 +62,9 @@ public:
             Edge edge = iter->next();
             Node* next = iter->follow(edge);
 
-            strategy_->recordTrans2VisGraph(cur, next, &edge);
+            if (observer_) {
+                observer_->onTransition(cur, next, edge);
+            }
 
             if (!dfs_ctx_.hasVisited(next->getHashId())) {
                 onNewNode(next);
@@ -87,7 +94,10 @@ private:
 
         strategy_->preCheck(node);
         strategy_->onVisit(node);
-        strategy_->recordNode2VisGraph(node);
+
+        if (observer_) {
+            observer_->onNodeVisited(node);
+        }
     }
 
     void onRevisitNode(Node* cur, Node* next) {
@@ -104,8 +114,8 @@ private:
             scc_detector_.extractScc<Node>(node, std::back_inserter(scc));
             strategy_->onSccFound(scc);
 
-            for (auto* n : scc) {
-                strategy_->setStateStatus2VisGraph(n);
+            if (observer_) {
+                observer_->onSccCompleted(scc);
             }
         }
 
@@ -120,6 +130,10 @@ private:
         // 更新父节点的 low 值
         if (prev != nullptr) {
             state_.updateLowByLow(prev->getHashId(), node->getHashId());
+        }
+
+        if (observer_) {
+            observer_->onNodeCompleted(node);
         }
     }
 };

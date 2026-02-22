@@ -237,20 +237,4 @@ public:
     }
 };
 
-// === 自由函数：逻辑检查 ===
-
-inline bool checkImplies(CuddMgr& mgr, Formula* f1, Formula* f2)
-{
-    CUDD::BDD bdd1 = mgr.convertFormula2Bdd(f1);
-    CUDD::BDD bdd2 = mgr.convertFormula2Bdd(f2);
-    return BddChecker::checkImplies(bdd1, bdd2, mgr.falseBdd());
-}
-
-inline bool checkConflicts(CuddMgr& mgr, Formula* f1, Formula* f2)
-{
-    CUDD::BDD bdd1 = mgr.convertFormula2Bdd(f1);
-    CUDD::BDD bdd2 = mgr.convertFormula2Bdd(f2);
-    return BddChecker::checkConflicts(bdd1, bdd2, mgr.falseBdd());
-}
-
 }  // namespace Cosy

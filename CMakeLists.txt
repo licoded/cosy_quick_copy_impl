@@ -47,6 +47,7 @@ target_compile_features(formula PUBLIC cxx_std_20)
 # Cudd utils library
 # ------------------------------------------------------------------
 add_library(cudd_utils STATIC
+    src/cudd/checker.cpp
     src/cudd/part_var.cpp
 )
 target_include_directories(cudd_utils PUBLIC

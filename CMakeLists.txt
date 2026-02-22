@@ -47,9 +47,7 @@ target_compile_features(formula PUBLIC cxx_std_20)
 # Cudd utils library
 # ------------------------------------------------------------------
 add_library(cudd_utils STATIC
-    src/cudd/cudd_mgr_base.cpp
     src/cudd/part_var.cpp
-    src/cudd/formula_in_bdd.cpp
 )
 target_include_directories(cudd_utils PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

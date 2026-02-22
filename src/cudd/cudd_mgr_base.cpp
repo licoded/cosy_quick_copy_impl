@@ -39,28 +39,6 @@ std::pair<Formula*, Formula*> *ICuddMgr::split_XY_from_edgeAf(Formula* af)
     return part_var_.split_XY_from_edgeAf(af, builder_);
 }
 
-DdNode *ICuddMgr::transByEdgeAf(DdNode *root_ddP, Formula* edge_af)
-{
-    std::unordered_set<int> lit_set;
-    collect_literals(edge_af, lit_set);
-    DdNode *cur_ddP = Cudd_Ref_Wrapper(root_ddP);
-    while (isXYVar(cur_ddP))
-    {
-        Formula *afP = afP_vec_.at(Cudd_NodeReadIndex(cur_ddP));
-        assert(afP->op() == Operator::Literal && "XY variable in BDD must correspond to a literal formula");
-        DdNode *true_addP = Cudd_IsComplement(cur_ddP) ? ADD_Not(cur_ddP) : cur_ddP;
-        if (ranges::contains(lit_set, afP->var_id()))
-            cur_ddP = Cudd_T(true_addP);
-        else if (ranges::contains(lit_set, -afP->var_id()))
-            cur_ddP = Cudd_E(true_addP);
-        else
-            assert(false && "state need a var to be determined but not found in Variable in edge_af");
-        Cudd_Unref(true_addP);
-        Cudd_Ref(cur_ddP);
-    }
-    return cur_ddP;
-}
-
 void print_succinct_info(DdManager *mgr)
 {
     // Create a temporary file using tmpfile (automatically deleted when closed)

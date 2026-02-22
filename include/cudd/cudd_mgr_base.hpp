@@ -95,39 +95,6 @@ class ICuddMgr
     DdNode *Cudd_bddOr(DdNode *a, DdNode *b) { return ::Cudd_bddOr(cudd_mgr_, a, b); }
     DdNode *Cudd_bddNot(DdNode *a) { return Cudd_Not(a); }
 
-    // === for Add ===
-    DdNode *newAddVar()
-    {
-        DdNode *var = Cudd_addNewVar(cudd_mgr_);
-        Cudd_Ref(var);
-        return var;
-    }
-    DdNode *getAddConst(int value)
-    {
-        DdNode *ret = Cudd_addConst(cudd_mgr_, value);
-        Cudd_Ref(ret);
-        return ret;
-    }
-    u_int64_t getAddConstValue(DdNode *addP) { return Cudd_V(addP); }
-
-    DdNode *ADD_Apply(DdNode *a, DdNode *b, DD_AOP op)
-    {
-        DdNode *ret = Cudd_addApply(cudd_mgr_, op, a, b);
-        Cudd_Ref(ret);
-        Cudd_Unref(a);
-        Cudd_Unref(b);
-        return ret;
-    }
-    DdNode *ADD_Plus(DdNode *a, DdNode *b) { return ADD_Apply(a, b, Cudd_addPlus); }
-    DdNode *ADD_Times(DdNode *a, DdNode *b) { return ADD_Apply(a, b, Cudd_addTimes); }
-    DdNode *ADD_Not(DdNode *a)
-    {
-        DdNode *ret = Cudd_addCmpl(cudd_mgr_, a);
-        Cudd_Ref(ret);
-        Cudd_Unref(a);
-        return ret;
-    }
-
     // === fixAtomOrder ===
   protected:
     virtual void fixAtomOrder() = 0;
@@ -141,9 +108,6 @@ class ICuddMgr
     // === trans in cudd tree
   protected:
     std::vector<Formula*> afP_vec_;  // 存储 Formula 指针，用于获取 var_id
-
-  public:
-    DdNode *transByEdgeAf(DdNode *root_ddP, Formula* edge_af);
 
     // === for edge_cons_builder
   public:

@@ -42,10 +42,18 @@ std::string FormulaStringifier::to_string(const Formula* formula, SymbolTable& s
     }
 
     // F(uture), G(lobal)
-    if (formula->left_->op_ == Operator::True && formula->op_ == Operator::Until)
-        return "F" + parenthesize_if_binary(formula->right_);
-    if (formula->left_->op_ == Operator::False && formula->op_ == Operator::Release)
-        return "G" + parenthesize_if_binary(formula->right_);
+    if (formula->left_->op_ == Operator::True && formula->op_ == Operator::Until) {
+        if (formula->right_->op_ == Operator::True)
+            return "!Tail";
+        else
+            return "F" + parenthesize_if_binary(formula->right_);
+    }
+    if (formula->left_->op_ == Operator::False && formula->op_ == Operator::Release) {
+        if (formula->right_->op_ == Operator::False)
+            return "Tail";
+        else
+            return "G" + parenthesize_if_binary(formula->right_);
+    }
 
     return format_binary(formula->left_, op_str, formula->right_);
 }

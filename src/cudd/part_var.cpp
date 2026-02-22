@@ -2,10 +2,10 @@
 
 namespace Cosy {
 
-void sortVarsByNames(std::vector<int> &varId_vec)
+void sortVarsByNames(std::vector<unsigned int> &varId_vec)
 {
     std::sort(varId_vec.begin(), varId_vec.end(),
-              [](int varId1, int varId2) {
+              [](unsigned int varId1, unsigned int varId2) {
                   return get_global_symbol_table().get_var_name(varId1) < get_global_symbol_table().get_var_name(varId2);
               });
 }

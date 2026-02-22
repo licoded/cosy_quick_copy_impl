@@ -26,7 +26,7 @@ class ICuddMgr
     FormulaBuilder& getBuilder() { return builder_; }
     bool isYVar(DdNode *addP) const { return Cudd_NodeReadIndex(addP) < part_var_.getYVarNum(); }
     bool isXYVar(DdNode *addP) const { return Cudd_NodeReadIndex(addP) < part_var_.getAllVarNum(); }
-    std::unordered_set<int> const &getAllVarIds() const { return part_var_.getAllVarIds(); }
+    auto getAllVarIds() const { return part_var_.getAllVarIds(); }
     std::pair<Formula*, Formula*> *split_XY_from_edgeAf(Formula* af);
 
     // === for cudd_mgr ===

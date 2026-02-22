@@ -1,7 +1,6 @@
-#include "cudd/formula_utils.hpp"
+#include "formula/utils.hpp"
 #include "cudd/cudd_config.hpp"
 #include "formula/operator.hpp"
-#include "formula/variable_collector.hpp"
 #include <spdlog/spdlog.h>
 #include <cstdlib>
 
@@ -12,7 +11,7 @@ namespace Cosy {
     std::exit(1);
 }
 
-// tail = true R false
+// tail = false R false
 bool is_tail(const Formula* af) {
     if (af == nullptr) {
         return false;
@@ -24,7 +23,7 @@ bool is_tail(const Formula* af) {
     const Formula* left = af->left();
     const Formula* right = af->right();
     return left != nullptr && right != nullptr &&
-           left->op() == Operator::True && right->op() == Operator::False;
+           left->op() == Operator::False && right->op() == Operator::False;
 }
 
 // not_tail = true U true
@@ -42,27 +41,27 @@ bool is_not_tail(const Formula* af) {
            left->op() == Operator::True && right->op() == Operator::True;
 }
 
-Formula* formula_conjunction(FormulaBuilder& builder, const std::vector<Formula*>& formulas) {
-    if (formulas.empty()) {
-        return builder.make_true();
-    }
-
-    Formula* result = formulas[0];
-    for (size_t i = 1; i < formulas.size(); ++i) {
-        result = builder.make_binary(Operator::And, result, formulas[i]);
-    }
-    return result;
-}
-
-void collect_var_ids(const Formula* af, std::unordered_set<int>& var_set) {
+void collect_literals(const Formula* af, std::unordered_set<int>& var_set) {
     if (af == nullptr) {
         return;
     }
 
-    // 使用 VariableCollector 收集变量
-    auto var_ids = collect_variables(const_cast<Formula*>(af));
-    for (auto id : var_ids) {
-        var_set.insert(static_cast<int>(id));
+    switch(af->op()) {
+        case Operator::Literal:
+            var_set.insert(af->var_id());
+            break;
+        case Operator::Not:
+            assert(af->right() != nullptr && "NOT operator must have a right child");
+            assert(af->right()->op() == Operator::Literal && "NOT operator's right child must be a literal");
+            var_set.insert(-af->right()->var_id());
+            break;
+        case Operator::And:
+            collect_literals(af->left(), var_set);
+            collect_literals(af->right(), var_set);
+            break;
+        default:
+            assert(false && "Unsupported operator in collect_literals: only Literal, Not, and And are allowed");
+            break;
     }
 }
 

@@ -2,11 +2,10 @@
 
 #include "cudd/cudd_config.hpp"
 #include "cudd/cudd_mgr_base.hpp"
-#include "cudd/formula_utils.hpp"
+#include "formula/utils.hpp"
 #include "cudd/part_var.hpp"
 #include "formula/formula.hpp"
 #include "formula/builder.hpp"
-#include "formula/variable_collector.hpp"
 #include <algorithm>
 #include <cudd/cuddObj.hh>
 #include <iostream>
@@ -72,10 +71,10 @@ class FormulaInBddMgr : public ICuddMgr
     {
         std::vector<Formula*> atoms;
         for (int varId : part_var_.getYVarIds()) {
-            atoms.push_back(builder_.make_literal(get_global_symbol_table().get_var_name(varId)));
+            atoms.push_back(builder_.make_literal(varId));
         }
         for (int varId : part_var_.getXVarIds()) {
-            atoms.push_back(builder_.make_literal(get_global_symbol_table().get_var_name(varId)));
+            atoms.push_back(builder_.make_literal(varId));
         }
         return atoms;
     }

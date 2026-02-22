@@ -23,18 +23,10 @@ bool is_tail(const Formula* af);
 bool is_not_tail(const Formula* af);
 
 /**
- * @brief 将多个公式合取组合成一个公式
- * @param builder FormulaBuilder 引用
- * @param formulas 公式指针列表
- * @return 合取后的公式，如果列表为空则返回 true
- */
-Formula* formula_conjunction(FormulaBuilder& builder, const std::vector<Formula*>& formulas);
-
-/**
- * @brief 收集公式中的变量 ID 到给定的集合中
- * @param af 公式指针
+ * @brief 
+ * @param af 公式指针，要求是literals CNF
  * @param var_set 输出的变量 ID 集合
  */
-void collect_var_ids(const Formula* af, std::unordered_set<int>& var_set);
+void collect_literals(const Formula* af, std::unordered_set<int>& var_set);
 
 } // namespace Cosy

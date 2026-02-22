@@ -30,7 +30,7 @@ add_library(formula STATIC
     src/formula/simplify/release.cpp
     src/formula/simplification_visitor.cpp
     src/formula/simplify/simplifier.cpp
-    src/formula/variable_collector.cpp
+    src/formula/utils.cpp
     deps/internal/ltlparser/ltl_formula.c
     deps/internal/ltlparser/ltllexer.c
     deps/internal/ltlparser/ltlparser.c
@@ -50,12 +50,12 @@ add_library(cudd_utils STATIC
     src/cudd/cudd_mgr_base.cpp
     src/cudd/part_var.cpp
     src/cudd/formula_in_bdd.cpp
-    src/cudd/formula_utils.cpp
 )
 target_include_directories(cudd_utils PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/internal
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/external
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/external/range-v3
 )
 target_link_libraries(cudd_utils PUBLIC formula)
 target_compile_features(cudd_utils PUBLIC cxx_std_20)

@@ -119,9 +119,22 @@ Formula* FormulaBuilder::make_not_tail() {
 
 Formula* FormulaBuilder::make_literal(const std::string& var_name) {
     unsigned int id = context_.symbols().get_or_create_variable_id(var_name);
+    return make_literal(id);
+}
 
+Formula* FormulaBuilder::make_literal(int var_id) {
+    if (var_id < 0) {
+        // Negative var_id means negated literal
+        Formula* positive_literal = make_literal(static_cast<unsigned int>(-var_id));
+        return make_unary(Operator::Not, positive_literal);
+    } else {
+        return make_literal(static_cast<unsigned int>(var_id));
+    }
+}
+
+Formula* FormulaBuilder::make_literal(unsigned int var_id) {
     // Create temporary key for lookup (will compute hash automatically)
-    Formula key(Operator::Literal, nullptr, nullptr, id, &context_);
+    Formula key(Operator::Literal, nullptr, nullptr, var_id, &context_);
 
     // Search in unique table
     auto it = unique_table_.find(&key);
@@ -130,7 +143,7 @@ Formula* FormulaBuilder::make_literal(const std::string& var_name) {
     }
 
     // Not found, create new
-    Formula* new_formula = context_.create_formula(Operator::Literal, nullptr, nullptr, id);
+    Formula* new_formula = context_.create_formula(Operator::Literal, nullptr, nullptr, var_id);
     unique_table_.insert(new_formula);
     return new_formula;
 }
@@ -171,6 +184,36 @@ Formula* FormulaBuilder::make_binary(Operator op, Formula* left, Formula* right)
     Formula* new_formula = context_.create_formula(op, left, right, 0);
     unique_table_.insert(new_formula);
     return new_formula;
+}
+
+Formula* FormulaBuilder::make_global(Formula* operand) {
+    return make_binary(Operator::Release, make_false(), operand);
+}
+
+Formula* FormulaBuilder::make_future(Formula* operand) {
+    return make_binary(Operator::Until, make_true(), operand);
+}
+
+Formula* FormulaBuilder::formula_reduce(Operator op, const std::vector<Formula*>& formulas) {
+    if (formulas.empty()) {
+        return op == Operator::And ? make_true() : make_false();
+    }
+    if (formulas.size() == 1) {
+        return formulas[0];
+    }
+    Formula* result = formulas[0];
+    for (size_t i = 1; i < formulas.size(); ++i) {
+        result = make_binary(op, result, formulas[i]);
+    }
+    return result;
+}
+
+Formula* FormulaBuilder::make_ands(const std::vector<Formula*>& formulas) {
+    return formula_reduce(Operator::And, formulas);
+}
+
+Formula* FormulaBuilder::make_ors(const std::vector<Formula*>& formulas) {
+    return formula_reduce(Operator::Or, formulas);
 }
 
 namespace {

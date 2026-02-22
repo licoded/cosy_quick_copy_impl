@@ -20,8 +20,16 @@ public:
     Formula* make_tail();
     Formula* make_not_tail();
     Formula* make_literal(const std::string& name);
+    Formula* make_literal(unsigned int var_id);
+    Formula* make_literal(int var_id);
     Formula* make_unary(Operator op, Formula* operand);
     Formula* make_binary(Operator op, Formula* left, Formula* right);
+    Formula* make_global(Formula* operand);
+    Formula* make_future(Formula* operand);
+
+    Formula* formula_reduce(Operator op, const std::vector<Formula*>& formulas);
+    Formula* make_ands(const std::vector<Formula*>& formulas);
+    Formula* make_ors(const std::vector<Formula*>& formulas);
 
 private:
     // Hash consing support

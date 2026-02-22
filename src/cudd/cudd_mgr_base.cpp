@@ -1,7 +1,8 @@
 #include "cudd/cudd_mgr_base.hpp"
 #include "cudd/part_var.hpp"
-#include "cudd/formula_utils.hpp"
+#include "formula/utils.hpp"
 #include "formula/builder.hpp"
+#include <range/v3/algorithm/contains.hpp>
 #include <iostream>
 #include <set>
 
@@ -41,17 +42,19 @@ std::pair<Formula*, Formula*> *ICuddMgr::split_XY_from_edgeAf(Formula* af)
 DdNode *ICuddMgr::transByEdgeAf(DdNode *root_ddP, Formula* edge_af)
 {
     std::unordered_set<int> lit_set;
-    collect_var_ids(edge_af, lit_set);
+    collect_literals(edge_af, lit_set);
     DdNode *cur_ddP = Cudd_Ref_Wrapper(root_ddP);
     while (isXYVar(cur_ddP))
     {
         Formula *afP = afP_vec_.at(Cudd_NodeReadIndex(cur_ddP));
-        assert(afP->op() == Operator::Literal);
+        assert(afP->op() == Operator::Literal && "XY variable in BDD must correspond to a literal formula");
         DdNode *true_addP = Cudd_IsComplement(cur_ddP) ? ADD_Not(cur_ddP) : cur_ddP;
-        if (lit_set.find(afP->var_id()) != lit_set.end())
+        if (ranges::contains(lit_set, afP->var_id()))
             cur_ddP = Cudd_T(true_addP);
-        else
+        else if (ranges::contains(lit_set, -afP->var_id()))
             cur_ddP = Cudd_E(true_addP);
+        else
+            assert(false && "state need a var to be determined but not found in Variable in edge_af");
         Cudd_Unref(true_addP);
         Cudd_Ref(cur_ddP);
     }

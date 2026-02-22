@@ -12,7 +12,7 @@ void FormulaInBddMgr::buildClauses(Formula* af)
 {
     if (af == nullptr)
         return;
-    if (afP_to_bddP_.find(uint64_t(af)) != afP_to_bddP_.end())
+    if (afP_to_bddP_.count(uint64_t(af)))
         return;
 
     Operator op = af->op();
@@ -28,30 +28,30 @@ void FormulaInBddMgr::buildClauses(Formula* af)
 
     switch (op)
     {
-    case Operator::True:
-    case Operator::False:
-        break;
-    case Operator::Next:
-    case Operator::WNext:
-        buildIfMissing(af);
-        break;
-    case Operator::Not:
-        buildClauses(af->right());
-        break;
-    case Operator::Until:
-    case Operator::Release:
-        // Check for tail/not_tail
-        if (is_tail(af) || is_not_tail(af))
+        case Operator::True:
+        case Operator::False:
             break;
-        exit_with_error("Please convert the formula to XNF first!");
-        break;
-    case Operator::And:
-    case Operator::Or:
-        buildClauses(af->left());
-        buildClauses(af->right());
-        break;
-    default:
-        break;
+        case Operator::Next:
+        case Operator::WNext:
+            buildIfMissing(af);
+            break;
+        case Operator::Not:
+            buildClauses(af->right());
+            break;
+        case Operator::Until:
+        case Operator::Release:
+            // Check for tail/not_tail
+            if (is_tail(af) || is_not_tail(af))
+                break;
+            exit_with_error("Please convert the formula to XNF first!");
+            break;
+        case Operator::And:
+        case Operator::Or:
+            buildClauses(af->left());
+            buildClauses(af->right());
+            break;
+        default:
+            break;
     }
 }
 
@@ -70,30 +70,30 @@ DdNode *FormulaInBddMgr::constructBdd(Formula* af)
 
     switch (op)
     {
-    case Operator::Not:
-    {
-        DdNode *tmp = constructBdd(af->right());
-        DdNode *not_tmp = Cudd_Not(tmp);
-        res_node = Cudd_Ref_Wrapper(not_tmp);
-        Cudd_Unref(tmp);
-        break;
-    }
-    case Operator::And:
-    case Operator::Or:
-    {
-        DdNode *l_bdd = constructBdd(af->left());
-        DdNode *r_bdd = constructBdd(af->right());
-        DdNode *result = (op == Operator::And) ? Cudd_bddAnd(l_bdd, r_bdd) : Cudd_bddOr(l_bdd, r_bdd);
-        res_node = Cudd_Ref_Wrapper(result);
-        Cudd_Unref(l_bdd);
-        Cudd_Unref(r_bdd);
-        break;
-    }
-    default: // Atom, Next, WNext
-    {
-        spdlog::error("[constructBdd] for {}", af->toString());
-        exit_with_error("[constructBdd] Atom, Next, WNext should be already built!");
-    }
+        case Operator::Not:
+        {
+            DdNode *tmp = constructBdd(af->right());
+            DdNode *not_tmp = Cudd_Not(tmp);
+            res_node = Cudd_Ref_Wrapper(not_tmp);
+            Cudd_Unref(tmp);
+            break;
+        }
+        case Operator::And:
+        case Operator::Or:
+        {
+            DdNode *l_bdd = constructBdd(af->left());
+            DdNode *r_bdd = constructBdd(af->right());
+            DdNode *result = (op == Operator::And) ? Cudd_bddAnd(l_bdd, r_bdd) : Cudd_bddOr(l_bdd, r_bdd);
+            res_node = Cudd_Ref_Wrapper(result);
+            Cudd_Unref(l_bdd);
+            Cudd_Unref(r_bdd);
+            break;
+        }
+        default: // Atom, Next, WNext
+        {
+            spdlog::error("[constructBdd] for {}", af->toString());
+            exit_with_error("[constructBdd] Atom, Next, WNext should be already built!");
+        }
     }
 
     afP_to_bddP_.insert({uint64_t(af), res_node});
@@ -111,11 +111,8 @@ bool FormulaInBddMgr::CheckImplies(DdNode *f1, DdNode *f2)
 {
     DdNode *not_f2 = Cudd_bddNot(f2);
     Cudd_Ref(not_f2);
-    DdNode *f1_and_not_f2 = Cudd_bddAnd(f1, not_f2);
-    Cudd_Ref(f1_and_not_f2);
+    bool res_flag = CheckConflicts(f1, not_f2);
     Cudd_Unref(not_f2);
-    bool res_flag = f1_and_not_f2 == FALSE_bddP_;
-    Cudd_Unref(f1_and_not_f2);
     return res_flag;
 }
 
@@ -123,8 +120,8 @@ bool FormulaInBddMgr::CheckImplies(Formula* edge_af1, Formula* edge_af2)
 {
     DdNode *f1_bdd = convertFormula2Bdd(edge_af1);
     DdNode *f2_bdd = convertFormula2Bdd(edge_af2);
-    bool is_conflict = CheckImplies(f1_bdd, f2_bdd);
-    return is_conflict;
+    bool res_flag = CheckImplies(f1_bdd, f2_bdd);
+    return res_flag;
 }
 
 bool FormulaInBddMgr::CheckConflicts(DdNode *f1, DdNode *f2)

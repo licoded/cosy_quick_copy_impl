@@ -17,8 +17,6 @@
 
 namespace Cosy {
 
-void sortVarsByNames(std::vector<unsigned int> &varId_vec);
-
 class PartVar
 {
   private:
@@ -26,8 +24,10 @@ class PartVar
     std::vector<unsigned int> X_var_vec_;
     std::vector<unsigned int> Y_var_vec_;
 
+    void initXY_var_vec();
+
   public:
-    PartVar(std::unordered_set<unsigned int> &X_parts, std::unordered_set<unsigned int> &Y_parts)
+    PartVar(const std::unordered_set<unsigned int> &X_parts, const std::unordered_set<unsigned int> &Y_parts)
         : X_vars_(std::move(X_parts)),
           Y_vars_(std::move(Y_parts))
     {
@@ -47,16 +47,6 @@ class PartVar
         std::unordered_set<unsigned int> Y_parts_copy(Y_vars_);
         PartVar ret(X_parts_copy, Y_parts_copy);
         return ret;
-    }
-
-    void initXY_var_vec()
-    {
-        X_var_vec_.clear();
-        X_var_vec_.insert(X_var_vec_.end(), X_vars_.begin(), X_vars_.end());
-        sortVarsByNames(X_var_vec_);
-        Y_var_vec_.clear();
-        Y_var_vec_.insert(Y_var_vec_.end(), Y_vars_.begin(), Y_vars_.end());
-        sortVarsByNames(Y_var_vec_);
     }
 
     size_t getXVarNum() const { return X_vars_.size(); }
@@ -117,8 +107,8 @@ class PartVarBuilder
         partitionAtoms(af, env_var_names);
         return PartVar(X_vars_, Y_vars_);
     }
-};
 
-PartVar makePartVar(Formula* state_af, FormulaBuilder& builder, const std::unordered_set<std::string> &env_var_names);
+    static PartVar create(Formula* state_af, FormulaBuilder& builder, const std::unordered_set<std::string> &env_var_names);
+};
 
 } // namespace Cosy

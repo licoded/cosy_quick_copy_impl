@@ -105,10 +105,8 @@ class FormulaInBddMgr : public ICuddMgr
     {
         fixAtomOrder();
         initTailBdd();
-        Formula* true_f = builder_.make_true();
-        Formula* false_f = builder_.make_false();
-        afP_to_bddP_.insert({uint64_t(true_f), TRUE_bddP_});
-        afP_to_bddP_.insert({uint64_t(false_f), FALSE_bddP_});
+        afP_to_bddP_.insert({uint64_t(builder_.make_true()), TRUE_bddP_});
+        afP_to_bddP_.insert({uint64_t(builder_.make_false()), FALSE_bddP_});
     }
 
     FormulaInBdd *createFormulaInBdd(Formula* af, Formula* xnf_af)

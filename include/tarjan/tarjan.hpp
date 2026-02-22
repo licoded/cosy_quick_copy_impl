@@ -7,6 +7,9 @@
 #include "tarjan_state.hpp"
 #include "tarjan_strategy.hpp"
 
+#include <utility>
+#include <vector>
+
 namespace tarjan {
 
 // ============================================================================
@@ -21,7 +24,7 @@ public:
 private:
     ITarjanStrategy<Types>* strategy_;
     IEdgeIteratorFactory<Types>* edge_factory_;
-    ITarjanObserver<Types>* observer_;
+    std::vector<ITarjanObserver<Types>*> observers_;
 
     DfsContext dfs_ctx_;
     TarjanState state_;
@@ -29,13 +32,21 @@ private:
 
 public:
     Tarjan(ITarjanStrategy<Types>* strategy,
-           IEdgeIteratorFactory<Types>* edge_factory,
-           ITarjanObserver<Types>* observer = nullptr)
+           IEdgeIteratorFactory<Types>* edge_factory)
         : strategy_(strategy)
         , edge_factory_(edge_factory)
-        , observer_(observer)
         , scc_detector_(state_)
     {
+    }
+
+    void addObserver(ITarjanObserver<Types>* observer) {
+        if (observer) {
+            observers_.push_back(observer);
+        }
+    }
+
+    void clearObservers() {
+        observers_.clear();
     }
 
     void dfsSearch(Node* init) {
@@ -62,9 +73,7 @@ public:
             Edge edge = iter->next();
             Node* next = iter->follow(edge);
 
-            if (observer_) {
-                observer_->onTransition(cur, next, edge);
-            }
+            notify(&ITarjanObserver<Types>::onTransition, cur, next, edge);
 
             if (!dfs_ctx_.hasVisited(next->getHashId())) {
                 onNewNode(next);
@@ -87,6 +96,13 @@ public:
     }
 
 private:
+    template <typename Func, typename... Args>
+    void notify(Func func, Args&&... args) {
+        for (auto* observer : observers_) {
+            (observer->*func)(std::forward<Args>(args)...);
+        }
+    }
+
     void onNewNode(Node* node) {
         state_.initNode(node->getHashId());
         dfs_ctx_.push(node, node->getHashId());
@@ -94,10 +110,7 @@ private:
 
         strategy_->preCheck(node);
         strategy_->onVisit(node);
-
-        if (observer_) {
-            observer_->onNodeVisited(node);
-        }
+        notify(&ITarjanObserver<Types>::onNodeVisited, node);
     }
 
     void onRevisitNode(Node* cur, Node* next) {
@@ -113,10 +126,7 @@ private:
             std::vector<Node*> scc;
             scc_detector_.extractScc<Node>(node, std::back_inserter(scc));
             strategy_->onSccFound(scc);
-
-            if (observer_) {
-                observer_->onSccCompleted(scc);
-            }
+            notify(&ITarjanObserver<Types>::onSccCompleted, scc);
         }
 
         // 弹出节点
@@ -132,9 +142,7 @@ private:
             state_.updateLowByLow(prev->getHashId(), node->getHashId());
         }
 
-        if (observer_) {
-            observer_->onNodeCompleted(node);
-        }
+        notify(&ITarjanObserver<Types>::onNodeCompleted, node);
     }
 };
 

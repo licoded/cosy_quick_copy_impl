@@ -45,3 +45,14 @@ set_target_properties(tarjan_scc_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
 )
 add_test(NAME tarjan_scc_test COMMAND tarjan_scc_test)
+
+# Tarjan JSONL demo
+add_executable(tarjan_jsonl_demo tarjan/jsonl_demo.cpp)
+target_include_directories(tarjan_jsonl_demo PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/deps/external
+)
+set_target_properties(tarjan_jsonl_demo PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+)

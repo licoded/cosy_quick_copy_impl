@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tarjan/tarjan_observer.hpp"
-#include "deps/external/nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
 
 #include <fstream>
 

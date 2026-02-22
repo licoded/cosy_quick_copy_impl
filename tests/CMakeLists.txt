@@ -36,3 +36,11 @@ add_test(NAME formula_simplify_wnext_test COMMAND formula_simplify_wnext_test)
 add_test(NAME formula_simplify_until_test COMMAND formula_simplify_until_test)
 add_test(NAME formula_simplify_release_test COMMAND formula_simplify_release_test)
 add_test(NAME formula_visitor_test COMMAND formula_visitor_test)
+
+# Tarjan SCC test (standalone, no Catch2)
+add_executable(tarjan_scc_test tarjan/tarjan_scc_test.cpp)
+target_include_directories(tarjan_scc_test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+set_target_properties(tarjan_scc_test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+)
+add_test(NAME tarjan_scc_test COMMAND tarjan_scc_test)

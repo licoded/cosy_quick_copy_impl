@@ -7,6 +7,7 @@
 #include "tarjan_state.hpp"
 #include "tarjan_strategy.hpp"
 
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -20,6 +21,8 @@ class Tarjan {
 public:
     using Node = typename Types::Node;
     using Edge = typename Types::Edge;
+    using Iterator = IEdgeIterator<Types>;
+    using IteratorPtr = std::unique_ptr<Iterator>;
 
 private:
     ITarjanStrategy<Types>* strategy_;
@@ -27,6 +30,7 @@ private:
     std::vector<ITarjanObserver<Types>*> observers_;
 
     DfsContext dfs_ctx_;
+    std::vector<IteratorPtr> iter_stack_;  // 与 dfs_ctx_ 同步的迭代器栈
     TarjanState state_;
     SccDetector scc_detector_;
 
@@ -53,20 +57,16 @@ public:
         if (scc_detector_.isRootDetermined(init->getHashId()))
             return;
 
-        onNewNode(init);
+        pushNode(init);
 
         while (!dfs_ctx_.empty()) {
             Node* cur = static_cast<Node*>(dfs_ctx_.top());
+            Iterator* iter = iter_stack_.back().get();
+
             strategy_->preCheck(cur);
 
-            if (strategy_->shouldStop(cur)) {
-                onNodeComplete(cur);
-                continue;
-            }
-
-            auto iter = edge_factory_->createIterator(cur);
-            if (!iter->hasNext()) {
-                onNodeComplete(cur);
+            if (strategy_->shouldStop(cur) || !iter->hasNext()) {
+                popNode();
                 continue;
             }
 
@@ -76,7 +76,7 @@ public:
             notify(&ITarjanObserver<Types>::onTransition, cur, next, edge);
 
             if (!dfs_ctx_.hasVisited(next->getHashId())) {
-                onNewNode(next);
+                pushNode(next);
             } else {
                 onRevisitNode(cur, next);
             }
@@ -91,6 +91,7 @@ public:
 
     void reset() {
         dfs_ctx_ = DfsContext();
+        iter_stack_.clear();
         state_.clear();
         scc_detector_.clear();
     }
@@ -103,9 +104,10 @@ private:
         }
     }
 
-    void onNewNode(Node* node) {
+    void pushNode(Node* node) {
         state_.initNode(node->getHashId());
         dfs_ctx_.push(node, node->getHashId());
+        iter_stack_.push_back(edge_factory_->createIterator(node));
         scc_detector_.push(node);
 
         strategy_->preCheck(node);
@@ -113,14 +115,10 @@ private:
         notify(&ITarjanObserver<Types>::onNodeVisited, node);
     }
 
-    void onRevisitNode(Node* cur, Node* next) {
-        if (!scc_detector_.isRootDetermined(next->getHashId())) {
-            state_.updateLowByDfn(cur->getHashId(), next->getHashId());
-        }
-        strategy_->onRevisit(next, cur, dfs_ctx_.inPrefix(next->getHashId()));
-    }
+    void popNode() {
+        Node* node = static_cast<Node*>(dfs_ctx_.pop());
+        iter_stack_.pop_back();
 
-    void onNodeComplete(Node* node) {
         // 如果是 SCC 根，提取 SCC
         if (state_.isSccRoot(node->getHashId())) {
             std::vector<Node*> scc;
@@ -129,8 +127,6 @@ private:
             notify(&ITarjanObserver<Types>::onSccCompleted, scc);
         }
 
-        // 弹出节点
-        dfs_ctx_.pop();
         dfs_ctx_.removeFromPrefix(node->getHashId());
 
         // 通知策略
@@ -143,6 +139,13 @@ private:
         }
 
         notify(&ITarjanObserver<Types>::onNodeCompleted, node);
+    }
+
+    void onRevisitNode(Node* cur, Node* next) {
+        if (!scc_detector_.isRootDetermined(next->getHashId())) {
+            state_.updateLowByDfn(cur->getHashId(), next->getHashId());
+        }
+        strategy_->onRevisit(next, cur, dfs_ctx_.inPrefix(next->getHashId()));
     }
 };
 

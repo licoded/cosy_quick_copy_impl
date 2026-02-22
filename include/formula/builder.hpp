@@ -27,9 +27,9 @@ public:
     Formula* make_global(Formula* operand);
     Formula* make_future(Formula* operand);
 
-    Formula* formula_reduce(Operator op, const std::vector<Formula*>& formulas);
-    Formula* make_ands(const std::vector<Formula*>& formulas);
-    Formula* make_ors(const std::vector<Formula*>& formulas);
+    Formula* formula_reduce(Operator op, const std::vector<Formula*>& formulas, bool simplify = true);
+    Formula* make_ands(const std::vector<Formula*>& formulas, bool simplify = true);
+    Formula* make_ors(const std::vector<Formula*>& formulas, bool simplify = true);
 
 private:
     // Hash consing support

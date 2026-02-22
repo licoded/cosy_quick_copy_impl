@@ -7,7 +7,7 @@
 
 namespace Cosy {
 
-Formula* AndSimplifier::simplify(Formula* formula, FormulaBuilder& builder) {
+Formula* AndSimplifier::simplify(Formula* formula, FormulaBuilder& builder, bool dep) {
     std::set<Formula*> terms;
 
     // Phase 1: Initial collection (flatten nested AND from original tree)
@@ -21,30 +21,34 @@ Formula* AndSimplifier::simplify(Formula* formula, FormulaBuilder& builder) {
 
     // Phase 2: Simplify each term and expand any new AND formulas
     std::set<Formula*> new_terms;
-    for (Formula* f : terms) {
-        Formula* simplified = FormulaSimplifier::simplify(f, builder);
+    if (dep) {
+        for (Formula* f : terms) {
+            Formula* simplified = FormulaSimplifier::simplify(f, builder);
 
-        // If simplification produced an AND, expand it
-        if (simplified->op() == Operator::And) {
-            SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::And);
-        } else if (simplified->op() != Operator::True) {
-            // Skip True (identity for AND)
-            new_terms.insert(simplified);
+            // If simplification produced an AND, expand it
+            if (simplified->op() == Operator::And) {
+                SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::And);
+            } else if (simplified->op() != Operator::True) {
+                // Skip True (identity for AND)
+                new_terms.insert(simplified);
+            }
         }
-    }
 
-    // Check for False again after simplification
-    if (new_terms.find(false_f) != new_terms.end()) {
-        return false_f;
+        // Check for False again after simplification
+        if (new_terms.find(false_f) != new_terms.end()) {
+            return false_f;
+        }
+
+        swap(terms, new_terms); // Reuse set for next phase
     }
 
     // Phase 3: Check for conflicts (a & !a)
-    if (SimplifyUtil::has_complementary_literals(new_terms, builder)) {
+    if (SimplifyUtil::has_complementary_literals(terms, builder)) {
         return false_f;
     }
 
     // Rebuild chain from deduplicated terms
-    return SimplifyUtil::rebuild_chain(builder, new_terms, Operator::And);
+    return builder.formula_reduce(Operator::And, std::vector<Formula*>(terms.begin(), terms.end()), false);
 }
 
 } // namespace Cosy

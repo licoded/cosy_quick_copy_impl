@@ -1,8 +1,11 @@
 #include "formula/builder.hpp"
 #include "formula/formula.hpp"
+#include "formula/simplify/and.hpp"
+#include "formula/simplify/or.hpp"
 #include "formula/synthesis_context.hpp"
 #include "formula/hash.hpp"
 #include "ltlparser/trans.h"
+#include <cassert>
 #include <stdexcept>
 
 namespace Cosy {
@@ -214,9 +217,9 @@ Formula* FormulaBuilder::make_future(Formula* operand) {
     return make_binary(Operator::Until, make_true(), operand);
 }
 
-Formula* FormulaBuilder::formula_reduce(Operator op, const std::vector<Formula*>& formulas) {
+Formula* FormulaBuilder::formula_reduce(Operator op, const std::vector<Formula*>& formulas, bool simplify) {
     if (formulas.empty()) {
-        return op == Operator::And ? make_true() : make_false();
+        assert(false && "formula_reduce should not be called with an empty vector");
     }
     if (formulas.size() == 1) {
         return formulas[0];
@@ -225,15 +228,22 @@ Formula* FormulaBuilder::formula_reduce(Operator op, const std::vector<Formula*>
     for (size_t i = 1; i < formulas.size(); ++i) {
         result = make_binary(op, result, formulas[i]);
     }
+    if (simplify) {
+        if (op == Operator::And) {
+            result = AndSimplifier::simplify(result, *this, false);
+        } else if (op == Operator::Or) {
+            result = OrSimplifier::simplify(result, *this, false);
+        }
+    }
     return result;
 }
 
-Formula* FormulaBuilder::make_ands(const std::vector<Formula*>& formulas) {
-    return formula_reduce(Operator::And, formulas);
+Formula* FormulaBuilder::make_ands(const std::vector<Formula*>& formulas, bool simplify) {
+    return formula_reduce(Operator::And, formulas, simplify);
 }
 
-Formula* FormulaBuilder::make_ors(const std::vector<Formula*>& formulas) {
-    return formula_reduce(Operator::Or, formulas);
+Formula* FormulaBuilder::make_ors(const std::vector<Formula*>& formulas, bool simplify) {
+    return formula_reduce(Operator::Or, formulas, simplify);
 }
 
 namespace {

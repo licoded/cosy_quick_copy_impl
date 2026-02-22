@@ -33,7 +33,7 @@ public:
      * @param builder The formula builder for creating new formulas
      * @return Simplified formula
      */
-    static Formula* simplify(Formula* formula, FormulaBuilder& builder);
+    static Formula* simplify(Formula* formula, FormulaBuilder& builder, bool dep = true);
 };
 
 } // namespace Cosy

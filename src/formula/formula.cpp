@@ -4,6 +4,7 @@
 #include "formula/synthesis_context.hpp"
 #include "formula/simplify/simplifier.hpp"
 #include "formula/trans/nnf.hpp"
+#include "formula/trans/xnf.hpp"
 #include "formula/hash.hpp"
 #include "formula/visitor.hpp"
 
@@ -33,6 +34,10 @@ Formula* Formula::simplify() {
 
 Formula* Formula::nnf() {
     return NNFTransformer::to_nnf(this, context_->formula_builder());
+}
+
+Formula* Formula::xnf() {
+    return XNFTransformer::to_xnf(this, context_->formula_builder());
 }
 
 void Formula::accept(Visitor& visitor) const {

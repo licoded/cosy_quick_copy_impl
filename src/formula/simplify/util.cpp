@@ -18,28 +18,6 @@ void collect_binary_terms(Formula* f, std::set<Formula*>& terms, Operator op) {
     }
 }
 
-Formula* rebuild_chain(FormulaBuilder& builder, const std::set<Formula*>& terms, Operator op) {
-    if (terms.empty()) {
-        // Identity element
-        return (op == Operator::And) ? builder.make_true() : builder.make_false();
-    }
-
-    if (terms.size() == 1) {
-        return *terms.begin();
-    }
-
-    // Build right-leaning chain: a & b & c → &(a, &(b, c))
-    auto it = terms.begin();
-    Formula* result = *it;
-    ++it;
-
-    for (; it != terms.end(); ++it) {
-        result = builder.make_binary(op, result, *it);
-    }
-
-    return result;
-}
-
 bool has_complementary_literals(const std::set<Formula*>& terms, FormulaBuilder& builder) {
     std::set<Formula*> positives; // v0, v1, ...
     std::set<Formula*> negatives; // !v0, !v1, ...

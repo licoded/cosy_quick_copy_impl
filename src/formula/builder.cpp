@@ -77,6 +77,16 @@ Formula* FormulaBuilder::make_true() {
         return true_formula_;
     }
 
+    // Create temporary key for lookup (will compute hash automatically)
+    Formula key(Operator::True, nullptr, nullptr, 0, &context_);
+
+    // Search in unique table
+    auto it = unique_table_.find(&key);
+    if (it != unique_table_.end()) {
+        true_formula_ = *it;
+        return true_formula_;
+    }
+
     // Create new True formula
     true_formula_ = context_.create_formula(Operator::True, nullptr, nullptr, 0);
     unique_table_.insert(true_formula_);
@@ -86,6 +96,16 @@ Formula* FormulaBuilder::make_true() {
 Formula* FormulaBuilder::make_false() {
     // Return singleton if already created
     if (false_formula_) {
+        return false_formula_;
+    }
+
+    // Create temporary key for lookup (will compute hash automatically)
+    Formula key(Operator::False, nullptr, nullptr, 0, &context_);
+
+    // Search in unique table
+    auto it = unique_table_.find(&key);
+    if (it != unique_table_.end()) {
+        false_formula_ = *it;
         return false_formula_;
     }
 

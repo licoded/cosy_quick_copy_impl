@@ -31,8 +31,8 @@ private:
 
     void initTrueFalse()
     {
-        cache_.recordWithoutVec(var_mgr_.makeTrue(), core_.trueBdd());
-        cache_.recordWithoutVec(var_mgr_.makeFalse(), core_.falseBdd());
+        cache_.mapFormula2Bdd(var_mgr_.makeTrue(), core_.trueBdd());
+        cache_.mapFormula2Bdd(var_mgr_.makeFalse(), core_.falseBdd());
     }
 
 public:
@@ -60,7 +60,6 @@ public:
     // === Formula → BDD ===
     FormulaInBdd* createFormulaInBdd(Formula* af, Formula* xnf_af);
     FormulaInBdd* createFormulaInBdd(Formula* af) { return createFormulaInBdd(af, af->nnf()->xnf()); }
-    Formula* atomFormulaFromBdd(DdNode* bddP) const;
 
     // === 逻辑检查 ===
     bool checkImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const;

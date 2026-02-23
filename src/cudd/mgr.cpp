@@ -11,7 +11,8 @@ CuddMgr::CuddMgr(PartVar part_var, FormulaBuilder& builder)
     , cache_()
     , var_names_()
 {
-    registerAtomsInOrder();
+    registerAtomsInOrder(); // 先注册 atoms，确保它们的 BDD 变量索引在前面
+                            // 为了保障 isYVar、isAtomVar 判断的正确性和高效性
     initTailBdd();
     initTrueFalse();
 }
@@ -25,8 +26,7 @@ void CuddMgr::registerClausesAsBddVars(Formula* af)
 
     if (op == Operator::Literal)
     {
-        if (!cache_.hasBuilt(af))
-            exit_with_error("All atoms should be init in the beginning! Found uninitialized atom: " + af->toString());
+        exit_with_error("All atoms should be init in the beginning! Found uninitialized atom: " + af->toString());
         return;
     }
 
@@ -37,7 +37,7 @@ void CuddMgr::registerClausesAsBddVars(Formula* af)
             break;
         case Operator::Next:
         case Operator::WNext:
-            cache_.buildIfMissing(af, core_);
+            cache_.createBddVar4Prop(af, core_);
             break;
         case Operator::Not:
             registerClausesAsBddVars(af->right());
@@ -86,7 +86,7 @@ CUDD::BDD CuddMgr::formulaToBdd(Formula* af)
             exit_with_error("[formulaToBdd] Atom, Next, WNext should be already built!");
     }
 
-    cache_.recordWithoutVec(af, res);
+    cache_.mapFormula2Bdd(af, res);
     return res;
 }
 
@@ -94,7 +94,7 @@ void CuddMgr::registerAtomsInOrder()
 {
     std::vector<Formula*> atoms = var_mgr_.getAtoms();
     for (auto atom : atoms)
-        cache_.buildIfMissing(atom, core_);
+        cache_.createBddVar4Prop(atom, core_);
     for (auto atom : atoms)
         var_names_.push_back(atom->toString());
 }
@@ -102,11 +102,12 @@ void CuddMgr::registerAtomsInOrder()
 void CuddMgr::initTailBdd()
 {
     Formula* tail = var_mgr_.makeTail();
+    Formula* not_tail = var_mgr_.makeNotTail();
     if (!cache_.hasBuilt(tail))
     {
         CUDD::BDD tail_bdd = core_.newBddVar();
-        cache_.record(tail, tail_bdd);
-        cache_.record(var_mgr_.makeNotTail(), !tail_bdd);
+        cache_.mapProp2Bdd(tail, tail_bdd);
+        cache_.mapProp2Bdd(not_tail, !tail_bdd);
     }
 }
 
@@ -118,14 +119,6 @@ FormulaInBdd* CuddMgr::createFormulaInBdd(Formula* af, Formula* xnf_af)
                   af->toString(), xnf_af->toString(),
                   reinterpret_cast<uint64_t>(bdd.getNode()));
     return new FormulaInBdd(af, std::move(bdd));
-}
-
-Formula* CuddMgr::atomFormulaFromBdd(DdNode* bddP) const
-{
-    CUDD::BDD bdd(const_cast<CUDD::Cudd&>(core_.cudd()), bddP);
-    if (!isAtomVar(bdd, static_cast<int>(var_mgr_.getAllVarNum())))
-        exit_with_error("[atomFormulaFromBdd] BDD node is not an atom variable!");
-    return cache_.getFormulaByIndex(bdd.NodeReadIndex());
 }
 
 bool CuddMgr::checkImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const

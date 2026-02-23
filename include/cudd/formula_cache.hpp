@@ -11,14 +11,13 @@ namespace Cosy {
 /**
  * @brief Formula-BDD 映射缓存
  *
- * 纯数据存储，维护 Formula* ↔ BDD 的双向映射。
- * indexed_formulas_: BDD 索引 → Formula*
+ * ltlf_props_: 只记录 atoms、tail/!tail, Next/WNext，这些才会被注册为 BDD 变量
  * formula_to_bdd_: Formula* → BDD
  */
 class FormulaBddCache
 {
 protected:
-    std::vector<Formula*> indexed_formulas_;             // 索引 → Formula*
+    std::vector<Formula*> ltlf_props_;
     std::unordered_map<uint64_t, CUDD::BDD> formula_to_bdd_; // Formula* → BDD
 
 public:
@@ -40,36 +39,25 @@ public:
         return formula_to_bdd_.at(reinterpret_cast<uint64_t>(af));
     }
 
-    Formula* getFormulaByIndex(size_t index) const
-    {
-        return indexed_formulas_.at(index);
-    }
-
-    size_t size() const { return indexed_formulas_.size(); }
-
     // === 记录 ===
-    void record(Formula* af, CUDD::BDD bdd)
+    void mapProp2Bdd(Formula* af, CUDD::BDD bdd)
     {
-        indexed_formulas_.push_back(af);
-        formula_to_bdd_.insert({reinterpret_cast<uint64_t>(af), std::move(bdd)});
+        ltlf_props_.push_back(af);
+        mapFormula2Bdd(af, std::move(bdd));
     }
 
-    void recordWithoutVec(Formula* af, CUDD::BDD bdd)
+    void mapFormula2Bdd(Formula* af, CUDD::BDD bdd)
     {
         formula_to_bdd_.insert({reinterpret_cast<uint64_t>(af), std::move(bdd)});
     }
 
     // === 构建（需要 CuddCore 依赖） ===
-    void buildIfMissing(Formula* af, CuddCore& core)
+    void createBddVar4Prop(Formula* prop_formula, CuddCore& core)
     {
-        if (!hasBuilt(af))
-        {
-            record(af, core.newBddVar());
-        }
+        mapProp2Bdd(prop_formula, core.newBddVar());
     }
 
     // === 访问内部数据（用于遍历等） ===
-    const std::vector<Formula*>& indexedFormulas() const { return indexed_formulas_; }
     const std::unordered_map<uint64_t, CUDD::BDD>& formulaToBddMap() const { return formula_to_bdd_; }
 };
 

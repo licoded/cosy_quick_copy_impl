@@ -18,31 +18,43 @@ Formula* OrSimplifier::simplify(Formula* formula, FormulaBuilder& builder, bool 
     if (terms.find(true_f) != terms.end()) {
         return true_f;
     }
+    Formula* false_f = builder.make_false();
+    terms.erase(false_f); // Remove False (identity for OR)
+    // Check complementary literals (a | !a)
+    if (SimplifyUtil::has_complementary_literals(terms, builder)) {
+        return true_f;
+    }
 
     // Phase 2: Simplify each term and expand any new OR formulas
     std::set<Formula*> new_terms;
-    for (Formula* f : terms) {
-        Formula* simplified = dep ? FormulaSimplifier::simplify(f, builder) : f;
+    if (dep) {
+        for (Formula* f : terms) {
+            Formula* simplified = FormulaSimplifier::simplify(f, builder);
 
-        // If simplification produced an OR, expand it
-        if (dep && simplified->op() == Operator::Or) {
-            SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::Or);
-        } else if (simplified->op() != Operator::False) {
-            // Skip False (identity for OR)
-            new_terms.insert(simplified);
+            switch (simplified->op()) {
+                case Operator::Or:
+                    // If simplification produced an Or, expand it
+                    // TODO: 这里直接放入 new_terms 会不会少化简了?
+                    SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::Or);
+                    break;
+                case Operator::True:
+                    // True dominates everything in OR
+                    return true_f;
+                case Operator::False:
+                    // False is identity for OR, skip it
+                    break;
+                default:
+                    new_terms.insert(simplified);
+                    break;
+            }
         }
-    }
 
-    // Check for True again after simplification
-    if (new_terms.find(true_f) != new_terms.end()) {
-        return true_f;
-    }
+        // Check complementary literals (a | !a)
+        if (SimplifyUtil::has_complementary_literals(new_terms, builder)) {
+            return true_f;
+        }
 
-    swap(terms, new_terms); // Reuse set for next phase
-
-    // Phase 3: Check for tautologies (a | !a)
-    if (SimplifyUtil::has_complementary_literals(terms, builder)) {
-        return true_f;
+        swap(terms, new_terms); // Reuse set for next phase
     }
 
     // Rebuild chain from deduplicated terms

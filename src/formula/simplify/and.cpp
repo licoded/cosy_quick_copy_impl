@@ -18,31 +18,43 @@ Formula* AndSimplifier::simplify(Formula* formula, FormulaBuilder& builder, bool
     if (terms.find(false_f) != terms.end()) {
         return false_f;
     }
+    Formula* true_f = builder.make_true();
+    terms.erase(true_f); // Remove True (identity for AND)
+    // Check complementary literals (a & !a)
+    if (SimplifyUtil::has_complementary_literals(terms, builder)) {
+        return false_f;
+    }
 
     // Phase 2: Simplify each term and expand any new AND formulas
     std::set<Formula*> new_terms;
-    for (Formula* f : terms) {
-        Formula* simplified = dep ? FormulaSimplifier::simplify(f, builder) : f;
+    if (dep) {
+        for (Formula* f : terms) {
+            Formula* simplified = FormulaSimplifier::simplify(f, builder);
 
-        // If simplification produced an AND, expand it
-        if (dep && simplified->op() == Operator::And) {
-            SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::And);
-        } else if (simplified->op() != Operator::True) {
-            // Skip True (identity for AND)
-            new_terms.insert(simplified);
+            switch (simplified->op()) {
+                case Operator::And:
+                    // If simplification produced an AND, expand it
+                    // TODO: 这里直接放入 new_terms 会不会少化简了?
+                    SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::And);
+                    break;
+                case Operator::True:
+                    // True is identity for AND, skip it
+                    break;
+                case Operator::False:
+                    // False dominates everything in AND
+                    return false_f;
+                default:
+                    new_terms.insert(simplified);
+                    break;
+            }
         }
-    }
 
-    // Check for False again after simplification
-    if (new_terms.find(false_f) != new_terms.end()) {
-        return false_f;
-    }
+        // Check complementary literals (a & !a)
+        if (SimplifyUtil::has_complementary_literals(terms, builder)) {
+            return false_f;
+        }
 
-    swap(terms, new_terms); // Reuse set for next phase
-
-    // Phase 3: Check for conflicts (a & !a)
-    if (SimplifyUtil::has_complementary_literals(terms, builder)) {
-        return false_f;
+        swap(terms, new_terms); // Reuse set for next phase
     }
 
     // Rebuild chain from deduplicated terms

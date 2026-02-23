@@ -6,7 +6,7 @@ void sortVarsByNames(std::vector<unsigned int> &varId_vec)
 {
     std::sort(varId_vec.begin(), varId_vec.end(),
               [](unsigned int varId1, unsigned int varId2) {
-                  return get_global_symbol_table().get_var_name(varId1) < get_global_symbol_table().get_var_name(varId2);
+                  return SymbolTable::global().get_var_name(varId1) < SymbolTable::global().get_var_name(varId2);
               });
 }
 

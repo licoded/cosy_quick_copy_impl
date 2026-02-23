@@ -43,13 +43,11 @@ public:
     unsigned int get_or_create_variable_id(const std::string& var_name);
     const std::string& get_var_name(unsigned int id) const;
     static const char *get_op_str(Operator op);
+    static SymbolTable& global();
 
 private:
     std::vector<std::string> names_;
     std::unordered_map<std::string, int> ids_;
 };
-
-// Global symbol table accessor
-SymbolTable& get_global_symbol_table();
 
 } // namespace Cosy

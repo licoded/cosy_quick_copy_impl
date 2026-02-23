@@ -33,7 +33,7 @@ public:
     Formula* left() const { return left_; }
     Formula* right() const { return right_; }
     unsigned int var_id() const { return var_id_; }
-    const std::string& var_name() const { return get_global_symbol_table().get_var_name(var_id_); }
+    const std::string& var_name() const { return SymbolTable::global().get_var_name(var_id_); }
 
 private:
     friend class FormulaBuilder;

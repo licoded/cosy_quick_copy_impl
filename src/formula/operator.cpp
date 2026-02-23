@@ -34,7 +34,7 @@ bool is_binary_operator(Operator op) {
     return get_operator_info(op).arity == OperatorArity::Binary;
 }
 
-SymbolTable& get_global_symbol_table() {
+SymbolTable& SymbolTable::global() {
     return global_symbol_table;
 }
 

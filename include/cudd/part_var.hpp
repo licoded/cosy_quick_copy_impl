@@ -94,7 +94,7 @@ class PartVarBuilder
         std::unordered_set<int> var_set;
         collect_literals(af, var_set);
         for (int lit_id : var_set) {
-            const std::string& var_name = get_global_symbol_table().get_var_name(abs(lit_id));
+            const std::string& var_name = SymbolTable::global().get_var_name(abs(lit_id));
             if (ranges::contains(env_var_names, var_name))
                 X_vars_.insert(abs(lit_id));
             else

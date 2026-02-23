@@ -12,13 +12,13 @@ namespace Cosy {
  * @brief Formula-BDD 映射缓存
  *
  * 纯数据存储，维护 Formula* ↔ BDD 的双向映射。
- * afP_vec_: BDD 索引 → Formula*
+ * indexed_formulas_: BDD 索引 → Formula*
  * afP_to_bddP_: Formula* → BDD
  */
 class FormulaBddCache
 {
 protected:
-    std::vector<Formula*> afP_vec_;                      // 索引 → Formula*
+    std::vector<Formula*> indexed_formulas_;             // 索引 → Formula*
     std::unordered_map<uint64_t, CUDD::BDD> afP_to_bddP_; // Formula* → BDD
 
 public:
@@ -42,15 +42,15 @@ public:
 
     Formula* getFormulaByIndex(size_t index) const
     {
-        return afP_vec_.at(index);
+        return indexed_formulas_.at(index);
     }
 
-    size_t size() const { return afP_vec_.size(); }
+    size_t size() const { return indexed_formulas_.size(); }
 
     // === 记录 ===
     void record(Formula* af, CUDD::BDD bdd)
     {
-        afP_vec_.push_back(af);
+        indexed_formulas_.push_back(af);
         afP_to_bddP_.insert({reinterpret_cast<uint64_t>(af), std::move(bdd)});
     }
 
@@ -69,7 +69,7 @@ public:
     }
 
     // === 访问内部数据（用于遍历等） ===
-    const std::vector<Formula*>& getAfPVec() const { return afP_vec_; }
+    const std::vector<Formula*>& indexedFormulas() const { return indexed_formulas_; }
     const std::unordered_map<uint64_t, CUDD::BDD>& getAfPToBddP() const { return afP_to_bddP_; }
 };
 

@@ -11,12 +11,12 @@ CuddMgr::CuddMgr(PartVar part_var, FormulaBuilder& builder)
     , cache_()
     , var_names_()
 {
-    fixAtomOrder();
+    registerAtomsInOrder();
     initTailBdd();
     initTrueFalse();
 }
 
-void CuddMgr::buildClauses(Formula* af)
+void CuddMgr::registerClausesAsBddVars(Formula* af)
 {
     if (af == nullptr || cache_.hasBuilt(af))
         return;
@@ -40,7 +40,7 @@ void CuddMgr::buildClauses(Formula* af)
             cache_.buildIfMissing(af, core_);
             break;
         case Operator::Not:
-            buildClauses(af->right());
+            registerClausesAsBddVars(af->right());
             break;
         case Operator::Until:
         case Operator::Release:
@@ -50,18 +50,18 @@ void CuddMgr::buildClauses(Formula* af)
             break;
         case Operator::And:
         case Operator::Or:
-            buildClauses(af->left());
-            buildClauses(af->right());
+            registerClausesAsBddVars(af->left());
+            registerClausesAsBddVars(af->right());
             break;
         default:
             break;
     }
 }
 
-CUDD::BDD CuddMgr::constructBdd(Formula* af)
+CUDD::BDD CuddMgr::formulaToBdd(Formula* af)
 {
     if (af == nullptr)
-        exit_with_error("[constructBdd] the formula is NULL!");
+        exit_with_error("[formulaToBdd] the formula is NULL!");
 
     auto it = cache_.getAfPToBddP().find(reinterpret_cast<uint64_t>(af));
     if (it != cache_.getAfPToBddP().end())
@@ -73,24 +73,24 @@ CUDD::BDD CuddMgr::constructBdd(Formula* af)
     switch (op)
     {
         case Operator::Not:
-            res = !constructBdd(af->right());
+            res = !formulaToBdd(af->right());
             break;
         case Operator::And:
-            res = constructBdd(af->left()) & constructBdd(af->right());
+            res = formulaToBdd(af->left()) & formulaToBdd(af->right());
             break;
         case Operator::Or:
-            res = constructBdd(af->left()) | constructBdd(af->right());
+            res = formulaToBdd(af->left()) | formulaToBdd(af->right());
             break;
         default:
-            spdlog::error("[constructBdd] for {}", af->toString());
-            exit_with_error("[constructBdd] Atom, Next, WNext should be already built!");
+            spdlog::error("[formulaToBdd] for {}", af->toString());
+            exit_with_error("[formulaToBdd] Atom, Next, WNext should be already built!");
     }
 
     cache_.recordWithoutVec(af, res);
     return res;
 }
 
-void CuddMgr::fixAtomOrder()
+void CuddMgr::registerAtomsInOrder()
 {
     std::vector<Formula*> atoms = var_mgr_.getAtoms();
     for (auto atom : atoms)
@@ -112,26 +112,19 @@ void CuddMgr::initTailBdd()
 
 FormulaInBdd* CuddMgr::createFormulaInBdd(Formula* af, Formula* xnf_af)
 {
-    buildClauses(xnf_af);
-    CUDD::BDD bdd = convertFormula2Bdd(xnf_af);
+    registerClausesAsBddVars(xnf_af);
+    CUDD::BDD bdd = formulaToBdd(xnf_af);
     spdlog::debug("CuddMgr::createFormulaInBdd\n{}\n{}\n{}",
                   af->toString(), xnf_af->toString(),
                   reinterpret_cast<uint64_t>(bdd.getNode()));
     return new FormulaInBdd(af, std::move(bdd));
 }
 
-CUDD::BDD CuddMgr::convertFormula2Bdd(Formula* af)
-{
-    if (!cache_.hasBuilt(af))
-        constructBdd(af);
-    return cache_.getBdd(af);
-}
-
-Formula* CuddMgr::getCurAfVar(DdNode* bddP) const
+Formula* CuddMgr::atomFormulaFromBdd(DdNode* bddP) const
 {
     CUDD::BDD bdd(const_cast<CUDD::Cudd&>(core_.cudd()), bddP);
-    if (!isXYVar(bdd, static_cast<int>(var_mgr_.getAllVarNum())))
-        exit_with_error("[getCurAfVar] BDD node is not a variable!");
+    if (!isAtomVar(bdd, static_cast<int>(var_mgr_.getAllVarNum())))
+        exit_with_error("[atomFormulaFromBdd] BDD node is not an atom variable!");
     return cache_.getFormulaByIndex(bdd.NodeReadIndex());
 }
 
@@ -147,12 +140,12 @@ bool CuddMgr::checkConflicts(const CUDD::BDD& f1, const CUDD::BDD& f2) const
 
 bool CuddMgr::checkImplies(Formula* f1, Formula* f2)
 {
-    return checkImplies(convertFormula2Bdd(f1), convertFormula2Bdd(f2));
+    return checkImplies(formulaToBdd(f1), formulaToBdd(f2));
 }
 
 bool CuddMgr::checkConflicts(Formula* f1, Formula* f2)
 {
-    return checkConflicts(convertFormula2Bdd(f1), convertFormula2Bdd(f2));
+    return checkConflicts(formulaToBdd(f1), formulaToBdd(f2));
 }
 
 }  // namespace Cosy

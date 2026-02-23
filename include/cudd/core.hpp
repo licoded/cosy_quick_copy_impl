@@ -52,7 +52,7 @@ public:
         return bdd.NodeReadIndex() < static_cast<unsigned int>(y_var_num);
     }
 
-    static bool isXYVar(const CUDD::BDD& bdd, int all_var_num)
+    static bool isAtomVar(const CUDD::BDD& bdd, int all_var_num)
     {
         return bdd.NodeReadIndex() < static_cast<unsigned int>(all_var_num);
     }

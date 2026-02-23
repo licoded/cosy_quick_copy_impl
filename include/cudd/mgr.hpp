@@ -24,9 +24,9 @@ private:
     FormulaBddCache cache_;
     std::vector<std::string> var_names_;
 
-    void buildClauses(Formula* af);
-    CUDD::BDD constructBdd(Formula* af);
-    void fixAtomOrder();
+    void registerClausesAsBddVars(Formula* af);
+    CUDD::BDD formulaToBdd(Formula* af);
+    void registerAtomsInOrder();
     void initTailBdd();
 
     void initTrueFalse()
@@ -34,8 +34,6 @@ private:
         cache_.recordWithoutVec(var_mgr_.makeTrue(), core_.trueBdd());
         cache_.recordWithoutVec(var_mgr_.makeFalse(), core_.falseBdd());
     }
-
-    CUDD::BDD convertFormula2Bdd(Formula* af);
 
 public:
     explicit CuddMgr(PartVar part_var, FormulaBuilder& builder);
@@ -57,12 +55,12 @@ public:
 
     // === 静态工具方法 ===
     static bool isYVar(const CUDD::BDD& bdd, int y_var_num) { return CuddCore::isYVar(bdd, y_var_num); }
-    static bool isXYVar(const CUDD::BDD& bdd, int all_var_num) { return CuddCore::isXYVar(bdd, all_var_num); }
+    static bool isAtomVar(const CUDD::BDD& bdd, int all_var_num) { return CuddCore::isAtomVar(bdd, all_var_num); }
 
     // === Formula → BDD ===
     FormulaInBdd* createFormulaInBdd(Formula* af, Formula* xnf_af);
     FormulaInBdd* createFormulaInBdd(Formula* af) { return createFormulaInBdd(af, af->nnf()->xnf()); }
-    Formula* getCurAfVar(DdNode* bddP) const;
+    Formula* atomFormulaFromBdd(DdNode* bddP) const;
 
     // === 逻辑检查 ===
     bool checkImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const;

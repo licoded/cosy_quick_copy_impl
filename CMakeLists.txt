@@ -60,6 +60,17 @@ target_link_libraries(cudd_utils PUBLIC formula)
 target_compile_features(cudd_utils PUBLIC cxx_std_20)
 
 # ------------------------------------------------------------------
+# DFA library
+# ------------------------------------------------------------------
+add_library(dfa STATIC src/dfa/dfa.cpp deps/external/cudd/cuddObj.cc)
+target_include_directories(dfa PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps/external
+)
+target_link_libraries(dfa PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/deps/external/cudd/libcudd.a)
+target_compile_features(dfa PUBLIC cxx_std_20)
+
+# ------------------------------------------------------------------
 # Main executable
 # ------------------------------------------------------------------
 add_executable(formula_cli src/main.cpp)
@@ -68,6 +79,9 @@ target_link_libraries(formula_cli PUBLIC formula)
 
 if(BUILD_TESTS)
     enable_testing()
-    find_package(Catch2 REQUIRED)
+    set(CATCH2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/external/catch2)
+    add_library(Catch2_main STATIC ${CATCH2_DIR}/catch_main.cpp)
+    target_include_directories(Catch2_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/deps/external)
+    add_library(Catch2::Catch2WithMain ALIAS Catch2_main)
     add_subdirectory(tests)
 endif()

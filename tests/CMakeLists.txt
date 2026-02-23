@@ -58,3 +58,15 @@ target_include_directories(tarjan_jsonl_demo PRIVATE
 set_target_properties(tarjan_jsonl_demo PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
 )
+
+# DFA minimize test
+add_executable(dfa_minimize_test dfa/minimize/test.cpp)
+target_link_libraries(dfa_minimize_test PRIVATE dfa Catch2::Catch2WithMain)
+target_include_directories(dfa_minimize_test PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/deps/external
+)
+set_target_properties(dfa_minimize_test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+)
+add_test(NAME dfa_minimize_test COMMAND dfa_minimize_test)

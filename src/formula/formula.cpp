@@ -4,9 +4,11 @@
 #include "formula/synthesis_context.hpp"
 #include "formula/simplify/simplifier.hpp"
 #include "formula/trans/nnf.hpp"
+#include "formula/trans/progression.hpp"
 #include "formula/trans/xnf.hpp"
 #include "formula/hash.hpp"
 #include "formula/visitor.hpp"
+#include <unordered_set>
 
 namespace Cosy {
 
@@ -38,6 +40,10 @@ Formula* Formula::nnf() {
 
 Formula* Formula::xnf() {
     return XNFTransformer::to_xnf(this, context_->formula_builder());
+}
+
+Formula* Formula::progression(const std::unordered_set<int>& literals) {
+    return ProgressionTransformer::progression(this, context_->formula_builder(), const_cast<std::unordered_set<int>&>(literals));
 }
 
 void Formula::accept(Visitor& visitor) const {

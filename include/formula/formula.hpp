@@ -2,6 +2,7 @@
 
 #include "operator.hpp"
 #include <string>
+#include <unordered_set>
 
 namespace Cosy {
 
@@ -22,6 +23,7 @@ public:
     Formula* simplify();
     Formula* nnf();
     Formula* xnf();
+    Formula* progression(const std::unordered_set<int>& literals);
 
     // 访问者模式支持
     void accept(Visitor& visitor) const;

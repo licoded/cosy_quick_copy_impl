@@ -21,26 +21,24 @@ Formula* OrSimplifier::simplify(Formula* formula, FormulaBuilder& builder, bool 
 
     // Phase 2: Simplify each term and expand any new OR formulas
     std::set<Formula*> new_terms;
-    if (dep) {
-        for (Formula* f : terms) {
-            Formula* simplified = FormulaSimplifier::simplify(f, builder);
+    for (Formula* f : terms) {
+        Formula* simplified = dep ? FormulaSimplifier::simplify(f, builder) : f;
 
-            // If simplification produced an OR, expand it
-            if (simplified->op() == Operator::Or) {
-                SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::Or);
-            } else if (simplified->op() != Operator::False) {
-                // Skip False (identity for OR)
-                new_terms.insert(simplified);
-            }
+        // If simplification produced an OR, expand it
+        if (dep && simplified->op() == Operator::Or) {
+            SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::Or);
+        } else if (simplified->op() != Operator::False) {
+            // Skip False (identity for OR)
+            new_terms.insert(simplified);
         }
-
-        // Check for True again after simplification
-        if (new_terms.find(true_f) != new_terms.end()) {
-            return true_f;
-        }
-
-        swap(terms, new_terms); // Reuse set for next phase
     }
+
+    // Check for True again after simplification
+    if (new_terms.find(true_f) != new_terms.end()) {
+        return true_f;
+    }
+
+    swap(terms, new_terms); // Reuse set for next phase
 
     // Phase 3: Check for tautologies (a | !a)
     if (SimplifyUtil::has_complementary_literals(terms, builder)) {

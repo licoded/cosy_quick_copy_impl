@@ -21,26 +21,24 @@ Formula* AndSimplifier::simplify(Formula* formula, FormulaBuilder& builder, bool
 
     // Phase 2: Simplify each term and expand any new AND formulas
     std::set<Formula*> new_terms;
-    if (dep) {
-        for (Formula* f : terms) {
-            Formula* simplified = FormulaSimplifier::simplify(f, builder);
+    for (Formula* f : terms) {
+        Formula* simplified = dep ? FormulaSimplifier::simplify(f, builder) : f;
 
-            // If simplification produced an AND, expand it
-            if (simplified->op() == Operator::And) {
-                SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::And);
-            } else if (simplified->op() != Operator::True) {
-                // Skip True (identity for AND)
-                new_terms.insert(simplified);
-            }
+        // If simplification produced an AND, expand it
+        if (dep && simplified->op() == Operator::And) {
+            SimplifyUtil::collect_binary_terms(simplified, new_terms, Operator::And);
+        } else if (simplified->op() != Operator::True) {
+            // Skip True (identity for AND)
+            new_terms.insert(simplified);
         }
-
-        // Check for False again after simplification
-        if (new_terms.find(false_f) != new_terms.end()) {
-            return false_f;
-        }
-
-        swap(terms, new_terms); // Reuse set for next phase
     }
+
+    // Check for False again after simplification
+    if (new_terms.find(false_f) != new_terms.end()) {
+        return false_f;
+    }
+
+    swap(terms, new_terms); // Reuse set for next phase
 
     // Phase 3: Check for conflicts (a & !a)
     if (SimplifyUtil::has_complementary_literals(terms, builder)) {

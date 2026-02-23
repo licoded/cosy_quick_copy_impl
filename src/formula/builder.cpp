@@ -7,6 +7,7 @@
 #include "ltlparser/trans.h"
 #include <cassert>
 #include <stdexcept>
+#include <spdlog/spdlog.h>
 
 namespace Cosy {
 

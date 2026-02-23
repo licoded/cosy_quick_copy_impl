@@ -63,8 +63,8 @@ CUDD::BDD CuddMgr::formulaToBdd(Formula* af)
     if (af == nullptr)
         exit_with_error("[formulaToBdd] the formula is NULL!");
 
-    auto it = cache_.getAfPToBddP().find(reinterpret_cast<uint64_t>(af));
-    if (it != cache_.getAfPToBddP().end())
+    auto it = cache_.formulaToBddMap().find(reinterpret_cast<uint64_t>(af));
+    if (it != cache_.formulaToBddMap().end())
         return it->second;
 
     Operator op = af->op();

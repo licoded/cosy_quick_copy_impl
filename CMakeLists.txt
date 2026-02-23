@@ -62,7 +62,7 @@ target_compile_features(cudd_utils PUBLIC cxx_std_20)
 # ------------------------------------------------------------------
 # DFA library
 # ------------------------------------------------------------------
-add_library(dfa STATIC src/dfa/dfa.cpp deps/external/cudd/cuddObj.cc)
+add_library(dfa STATIC deps/external/cudd/cuddObj.cc)
 target_include_directories(dfa PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/external

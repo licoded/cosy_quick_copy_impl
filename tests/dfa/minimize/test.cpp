@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "dfa/dfa.hpp"
 
+using Cosy::DFA;
 
 TEST_CASE("DFA minimize: G(a -> WNext b)", "[dfa][minimize]") {
     CUDD::Cudd mgr(2);

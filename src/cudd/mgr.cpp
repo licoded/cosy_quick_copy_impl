@@ -92,7 +92,11 @@ CUDD::BDD CuddMgr::formulaToBdd(Formula* af)
 
 void CuddMgr::registerAtomsInOrder()
 {
-    std::vector<Formula*> atoms = var_mgr_.getAtoms();
+    std::vector<Formula*> atoms;
+    for (auto varId : var_mgr_.getAllVarIds())
+        atoms.push_back(getBuilder().make_literal(static_cast<int>(varId)));
+    for (auto atom : atoms)
+        assert(!cache_.hasBuilt(atom) && "All atoms should be registered only once!");
     for (auto atom : atoms)
         cache_.createBddVar4Prop(atom, core_);
     for (auto atom : atoms)
@@ -103,12 +107,10 @@ void CuddMgr::initTailBdd()
 {
     Formula* tail = var_mgr_.makeTail();
     Formula* not_tail = var_mgr_.makeNotTail();
-    if (!cache_.hasBuilt(tail))
-    {
-        CUDD::BDD tail_bdd = core_.newBddVar();
-        cache_.mapProp2Bdd(tail, tail_bdd);
-        cache_.mapProp2Bdd(not_tail, !tail_bdd);
-    }
+    assert(!cache_.hasBuilt(tail) && !cache_.hasBuilt(not_tail));
+    CUDD::BDD tail_bdd = core_.newBddVar();
+    cache_.mapProp2Bdd(tail, tail_bdd);
+    cache_.mapProp2Bdd(not_tail, !tail_bdd);
 }
 
 FormulaInBdd* CuddMgr::createFormulaInBdd(Formula* af, Formula* xnf_af)

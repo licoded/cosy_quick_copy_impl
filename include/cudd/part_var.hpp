@@ -54,7 +54,8 @@ class PartVar
     size_t getAllVarNum() const { return getXVarNum() + getYVarNum(); }
     bool isXVar(unsigned int var) const { return ranges::contains(X_vars_, var); }
     bool isYVar(unsigned int var) const { return ranges::contains(Y_vars_, var); }
-    auto getAllVarIds() const { return ranges::views::concat(X_vars_, Y_vars_); }
+    // 返回一个连接了 Y_vars 和 X_vars 的范围，保证 Y_vars 在前，X_vars 在后
+    auto getAllVarIds() const { return ranges::views::concat(Y_vars_, X_vars_); }
     std::unordered_set<unsigned int> const &getXVarIdSet() const { return X_vars_; }
     std::unordered_set<unsigned int> const &getYVarIdSet() const { return Y_vars_; }
     std::vector<unsigned int> const &getXVarIds() const { return X_var_vec_; }

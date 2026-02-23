@@ -41,25 +41,11 @@ public:
     const FormulaBuilder& getBuilder() const { return builder_; }
 
     // === 变量信息 ===
+    // 返回一个连接了 Y_vars 和 X_vars 的范围，保证 Y_vars 在前，X_vars 在后
     auto getAllVarIds() const { return part_var_.getAllVarIds(); }
     size_t getXVarNum() const { return part_var_.getXVarNum(); }
     size_t getYVarNum() const { return part_var_.getYVarNum(); }
     size_t getAllVarNum() const { return part_var_.getAllVarNum(); }
-
-    // === 获取所有原子（Y变量 + X变量顺序） ===
-    std::vector<Formula*> getAtoms() const
-    {
-        std::vector<Formula*> atoms;
-        for (unsigned int varId : part_var_.getYVarIds())
-        {
-            atoms.push_back(builder_.make_literal(static_cast<int>(varId)));
-        }
-        for (unsigned int varId : part_var_.getXVarIds())
-        {
-            atoms.push_back(builder_.make_literal(static_cast<int>(varId)));
-        }
-        return atoms;
-    }
 
     // === 特殊公式 ===
     Formula* makeTail() const { return builder_.make_tail(); }

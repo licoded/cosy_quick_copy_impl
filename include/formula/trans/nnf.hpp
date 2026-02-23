@@ -47,7 +47,7 @@ public:
             case Operator::False:
                 return builder.make_true();
             case Operator::Literal:
-                return builder.make_literal(-formula->var_id());
+                return builder.make_literal(-static_cast<int>(formula->var_id()));
             case Operator::Not:
                 return to_nnf(formula->right(), builder);
             default:

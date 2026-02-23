@@ -7,6 +7,7 @@ namespace Cosy {
 
 struct NoLabel {
     bool operator==(const NoLabel&) const { return true; }
+    size_t hashId() const { return 0; }
 };
 
 template<typename Label = NoLabel>
@@ -37,11 +38,5 @@ public:
 };
 
 } // namespace Cosy
-
-namespace std {
-template<> struct hash<Cosy::NoLabel> {
-    size_t operator()(const Cosy::NoLabel&) const { return 0; }
-};
-}
 
 #include "dfa/dfa.tpp"

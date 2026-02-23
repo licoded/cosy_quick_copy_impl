@@ -10,17 +10,22 @@ using Cosy::DFA;
 using Cosy::Formula;
 using Cosy::SynthesisContext;
 
-static void assign_labels(DFA<Formula*>& dfa, CUDD::Cudd& mgr,
+struct FormulaLabel {
+    Formula* f = nullptr;
+    size_t hashId() const { return 0; }
+};
+
+static void assign_labels(DFA<FormulaLabel>& dfa, CUDD::Cudd& mgr,
                           Formula* init, int id_a, int id_b) {
     std::vector<bool> visited(dfa.numStates(), false);
-    dfa.setLabel(dfa.start(), init);
+    dfa.setLabel(dfa.start(), FormulaLabel{init});
     visited[dfa.start()] = true;
 
     std::stack<int> stk;
     stk.push(dfa.start());
     while (!stk.empty()) {
         int s = stk.top(); stk.pop();
-        Formula* f = dfa.label(s);
+        Formula* f = dfa.label(s).f;
         for (int va = 0; va <= 1; va++) {
             for (int vb = 0; vb <= 1; vb++) {
                 int inputs[2] = {va, vb};
@@ -28,17 +33,17 @@ static void assign_labels(DFA<Formula*>& dfa, CUDD::Cudd& mgr,
                 if (visited[s2]) continue;
                 visited[s2] = true;
                 std::unordered_set<int> lits = {va ? id_a : -id_a, vb ? id_b : -id_b};
-                dfa.setLabel(s2, f->nnf()->xnf()->progression(lits));
+                dfa.setLabel(s2, FormulaLabel{f->nnf()->xnf()->progression(lits)});
                 stk.push(s2);
             }
         }
     }
 }
 
-static void print_labels(const DFA<Formula*>& dfa) {
+static void print_labels(const DFA<FormulaLabel>& dfa) {
     for (int i = 0; i < dfa.numStates(); i++)
         spdlog::info("  state {}: {}", i,
-                     dfa.label(i) ? dfa.label(i)->toString() : "(none)");
+                     dfa.label(i).f ? dfa.label(i).f->toString() : "(none)");
 }
 
 TEST_CASE("DFA with LTLf formula labels: G(a -> X b)", "[dfa][label]") {
@@ -51,7 +56,7 @@ TEST_CASE("DFA with LTLf formula labels: G(a -> X b)", "[dfa][label]") {
                       v0.Ite(mgr.constant(s_a),  mgr.constant(s_none)));
     };
 
-    DFA<Formula*> a(mgr, 6);
+    DFA<FormulaLabel> a(mgr, 6);
     a.setStart(0);
     a.setAcceptStates({1, 2, 3, 4});
     a.setTrans(0, make_trans(1, 3, 1, 3));
@@ -62,7 +67,7 @@ TEST_CASE("DFA with LTLf formula labels: G(a -> X b)", "[dfa][label]") {
     a.setTrans(5, make_trans(5, 5, 5, 5));
 
     SynthesisContext ctx;
-    Formula* init = ctx.parse_formula("G(a -> X b)");
+    Formula* init = ctx.parse_formula("G(a -> X b) & F(true)");
     int id_a = ctx.symbols().get_or_create_variable_id("a");
     int id_b = ctx.symbols().get_or_create_variable_id("b");
 
@@ -70,7 +75,8 @@ TEST_CASE("DFA with LTLf formula labels: G(a -> X b)", "[dfa][label]") {
     spdlog::info("Original DFA labels:");
     print_labels(a);
 
-    DFA<Formula*> b = a.minimize();
+    DFA<FormulaLabel> b = a.minimize();
+
     assign_labels(b, mgr, init, id_a, id_b);
     spdlog::info("Minimized DFA labels:");
     print_labels(b);

@@ -29,12 +29,12 @@ inline CUDD::ADD remap_rec(CUDD::Cudd& mgr, CUDD::ADD n, const int* d,
 }
 
 template<typename Label>
-using Key = std::tuple<Label, bool, DdNode*>;
+using Key = std::tuple<size_t, bool, DdNode*>;
 
 template<typename Label>
 struct KH {
     size_t operator()(const Key<Label>& k) const {
-        size_t h = std::hash<Label>()(std::get<0>(k));
+        size_t h = std::get<0>(k);
         h ^= std::hash<bool>()(std::get<1>(k)) << 1;
         h ^= std::hash<uintptr_t>()((uintptr_t)std::get<2>(k)) << 2;
         return h;

@@ -19,7 +19,7 @@ DFA<Label> DFA<Label>::minimize() const {
         std::unordered_map<dfa_detail::Key<Label>, int, dfa_detail::KH<Label>> kmap;
         num_old = num_new; num_new = 0;
         for (int i = 0; i < ns_; i++) {
-            auto [it, ins] = kmap.emplace(dfa_detail::Key<Label>{extra_[i], f_[i], remapped[i].getNode()}, num_new);
+            auto [it, ins] = kmap.emplace(dfa_detail::Key<Label>{extra_[i].hashId(), f_[i], remapped[i].getNode()}, num_new);
             discrs[i] = it->second;
             if (ins) ++num_new;
         }

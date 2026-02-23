@@ -21,12 +21,19 @@ public:
 
         const Operator op = formula->op();
         switch (op) {
+            case Operator::True:
+            case Operator::False:
+            case Operator::Literal:
+                return formula;
             case Operator::Not:
                 return to_nnf_not(formula->right(), builder);
+            case Operator::Next:
+            case Operator::WNext:
+                return builder.make_unary(op, to_nnf(formula->right(), builder));
             default:
-                Formula* left_nnf = to_nnf(formula->left(), builder);
-                Formula* right_nnf = to_nnf(formula->right(), builder);
-                return builder.make_binary(op, left_nnf, right_nnf);
+                return builder.make_binary(op,
+                    to_nnf(formula->left(), builder),
+                    to_nnf(formula->right(), builder));
         }
     }
 

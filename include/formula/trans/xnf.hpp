@@ -34,10 +34,11 @@ public:
             result = formula;
             break;
 
-        case Operator::And: {
+        case Operator::And:
+        case Operator::Or: {
             Formula* left_xnf = to_xnf(formula->left(), builder);
             Formula* right_xnf = to_xnf(formula->right(), builder);
-            result = builder.make_binary(op, left_xnf, right_xnf);
+            result = builder.formula_reduce(op, {left_xnf, right_xnf}, true);
             break;
         }
 

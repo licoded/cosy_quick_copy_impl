@@ -35,6 +35,8 @@ private:
         cache_.recordWithoutVec(var_mgr_.makeFalse(), core_.falseBdd());
     }
 
+    CUDD::BDD convertFormula2Bdd(Formula* af);
+
 public:
     explicit CuddMgr(PartVar part_var, FormulaBuilder& builder);
 
@@ -43,11 +45,9 @@ public:
 
     // === CuddCore 委托 ===
     CUDD::Cudd& cudd() { return core_.cudd(); }
-    DdManager* getManager() { return core_.getManager(); }
     CUDD::BDD trueBdd() const { return core_.trueBdd(); }
     CUDD::BDD falseBdd() const { return core_.falseBdd(); }
     CUDD::BDD newBddVar() { return core_.newBddVar(); }
-    static DdNode* getNode(const CUDD::BDD& bdd) { return CuddCore::getNode(bdd); }
 
     // === BddVarManager 委托 ===
     PartVar& getPartVar() { return var_mgr_.getPartVar(); }
@@ -61,20 +61,12 @@ public:
 
     // === Formula → BDD ===
     FormulaInBdd* createFormulaInBdd(Formula* af, Formula* xnf_af);
-    CUDD::BDD convertFormula2Bdd(Formula* af);
+    FormulaInBdd* createFormulaInBdd(Formula* af) { return createFormulaInBdd(af, af->nnf()->xnf()); }
     Formula* getCurAfVar(DdNode* bddP) const;
 
     // === 逻辑检查 ===
-    bool checkImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const
-    {
-        return BddChecker::checkImplies(f1, f2, core_.falseBdd());
-    }
-
-    bool checkConflicts(const CUDD::BDD& f1, const CUDD::BDD& f2) const
-    {
-        return BddChecker::checkConflicts(f1, f2, core_.falseBdd());
-    }
-
+    bool checkImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const;
+    bool checkConflicts(const CUDD::BDD& f1, const CUDD::BDD& f2) const;
     bool checkImplies(Formula* f1, Formula* f2);
     bool checkConflicts(Formula* f1, Formula* f2);
 };

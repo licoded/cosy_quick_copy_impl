@@ -38,8 +38,6 @@ public:
     // === CUDD 访问 ===
     CUDD::Cudd& cudd() { return cudd_; }
     const CUDD::Cudd& cudd() const { return cudd_; }
-    DdManager* getManager() { return cudd_.getManager(); }
-    const DdManager* getManager() const { return cudd_.getManager(); }
 
     // === 常量 BDD ===
     CUDD::BDD trueBdd() const { return true_bdd_; }
@@ -48,9 +46,6 @@ public:
     // === 变量创建 ===
     CUDD::BDD newBddVar() { return cudd_.bddVar(); }
     CUDD::BDD bddVar(int index) { return cudd_.bddVar(index); }
-
-    // === 静态工具 ===
-    static DdNode* getNode(const CUDD::BDD& bdd) { return bdd.getNode(); }
 
     static bool isYVar(const CUDD::BDD& bdd, int y_var_num)
     {

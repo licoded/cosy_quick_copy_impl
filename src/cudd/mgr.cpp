@@ -135,6 +135,16 @@ Formula* CuddMgr::getCurAfVar(DdNode* bddP) const
     return cache_.getFormulaByIndex(bdd.NodeReadIndex());
 }
 
+bool CuddMgr::checkImplies(const CUDD::BDD& f1, const CUDD::BDD& f2) const
+{
+    return BddChecker::checkImplies(f1, f2, core_.falseBdd());
+}
+
+bool CuddMgr::checkConflicts(const CUDD::BDD& f1, const CUDD::BDD& f2) const
+{
+    return BddChecker::checkConflicts(f1, f2, core_.falseBdd());
+}
+
 bool CuddMgr::checkImplies(Formula* f1, Formula* f2)
 {
     return checkImplies(convertFormula2Bdd(f1), convertFormula2Bdd(f2));
